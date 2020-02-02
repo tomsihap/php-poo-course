@@ -1,35 +1,40 @@
 <?php
+require __DIR__ . '/lib/Ship.php';
 
 function getShips() {
-    return [
-        'starfighter' => [
-            'name'          => 'Jedi Starfighter',
-            'weapon_power'  => 5,
-            'spatiodrive_booster'   => 15,
-            'strength'   =>  30,
-        ],
-        'x_wing_fighter' => [
-            'name'          => 'X-Wing Fighter',
-            'weapon_power'  => 2,
-            'spatiodrive_booster'   => 2,
-            'strength'   =>  70,
-        ],
-        'super_star_destroyer' => [
-            'name'          => 'Super Star Destroyer',
-            'weapon_power'  => 70,
-            'spatiodrive_booster'   => 0,
-            'strength'   =>  500,
-        ],
-        'rz1_a_wing_interceptor' => [
-            'name'          => 'RZ1 A-Wing Interceptor',
-            'weapon_power'  => 4,
-            'spatiodrive_booster'   => 4,
-            'strength'   =>  50,
-        ]
-    ];
+
+    $ships = [];
+
+    $ship1 = new Ship();
+    $ship1->name = "Jedi Starfighter";
+    $ship1->weaponPower = 5;
+    $ship1->spatiodriveBooster = 15;
+    $ship1->strength = 30;
+    $ships['starfighter'] = $ship1;
+
+    $ship2 = new Ship();
+    $ship2->name = "X-Wing Fighter";
+    $ship2->weaponPower = 2;
+    $ship2->spatiodriveBooster = 2;
+    $ship2->strength = 70;
+    $ships['x_wing_fighter'] = $ship2;
+
+    $ship3 = new Ship();
+    $ship3->name = "Super Star Destroyer";
+    $ship3->weaponPower = 70;
+    $ship3->spatiodriveBooster = 0;
+    $ship3->strength = 500;
+    $ships['super_star_destroyer'] = $ship3;
+
+    $ship4 = new Ship();
+    $ship4->name = "RZ1 A-Wing Interceptor";
+    $ship4->weaponPower = 4;
+    $ship4->spatiodriveBooster = 4;
+    $ship4->strength = 50;
+    $ships['rz1_a_wing_interceptor'] = $ship4;
+
+    return $ships;
 }
-
-
 
 /**
  * L'algorithme de combat super complexe !

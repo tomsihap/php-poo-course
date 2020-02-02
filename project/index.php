@@ -2,7 +2,7 @@
 session_start();
 require __DIR__ . '/functions.php';
 $ships = getShips();
-
+var_dump($ships);
 $errorMessage = null;
 if (isset($_SESSION['error'])) {
     switch ($_SESSION['error']) {
@@ -26,9 +26,9 @@ if (isset($_SESSION['error'])) {
 <?php include('_partials/_header.php'); ?>
 
 <?php if ($errorMessage !== null) : ?>
-<div class="alert alert-danger" role="alert">
-    <?= $errorMessage ?>
-</div>
+    <div class="alert alert-danger" role="alert">
+        <?= $errorMessage ?>
+    </div>
 <?php endif; ?>
 
 <h1><i class="fa fa-rocket" aria-hidden="true"></i> HB Battleships</h1>
@@ -53,10 +53,10 @@ if (isset($_SESSION['error'])) {
     <tbody>
         <?php foreach ($ships as $ship) : ?>
             <tr>
-                <td><?= $ship['name'] ?></td>
-                <td><?= $ship['weapon_power'] ?></td>
-                <td><?= $ship['spatiodrive_booster'] ?></td>
-                <td><?= $ship['strength'] ?></td>
+                <td><?= $ship->getName() ?></td>
+                <td><?= $ship->getWeaponPower() ?></td>
+                <td><?= $ship->getSpatiodriveBooster() ?></td>
+                <td><?= $ship->getStrength() ?></td>
             </tr>
         <?php endforeach; ?>
     </tbody>
@@ -71,7 +71,7 @@ if (isset($_SESSION['error'])) {
             <select class="center-block form-control dropdown-toggle" name="ship1_name">
                 <option value="">Choisir un vaisseau</option>
                 <?php foreach ($ships as $key => $ship) : ?>
-                    <option value="<?php echo $key; ?>"><?php echo $ship['name']; ?></option>
+                    <option value="<?php echo $key; ?>"><?php echo $ship->getNameAndSpecs(); ?></option>
                 <?php endforeach; ?>
             </select>
             <br>
@@ -81,7 +81,7 @@ if (isset($_SESSION['error'])) {
             <select class="center-block form-control dropdown-toggle" name="ship2_name">
                 <option value="">Choisir un vaisseau</option>
                 <?php foreach ($ships as $key => $ship) : ?>
-                    <option value="<?php echo $key; ?>"><?php echo $ship['name']; ?></option>
+                    <option value="<?php echo $key; ?>"><?php echo $ship->getNameAndSpecs(); ?></option>
                 <?php endforeach; ?>
             </select>
             <br>

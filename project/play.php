@@ -1,10 +1,12 @@
 <?php
 require __DIR__ . '/lib/Ship.php';
-
+$myShip = new Ship();
+$myShip->setName('Jedi Fighter');
+var_dump($myShip);
 $myShip = new Ship();
 $myShip->name = "X-Wing";
 $myShip->weaponPower = 100;
-$myShip->spatiodriveBooster = 30
+$myShip->spatiodriveBooster = 30;
 $myShip->strength = 400;
 
 $otherShip = new Ship();
