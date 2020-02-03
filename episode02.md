@@ -78,13 +78,13 @@ Vous avez maintenant 2 raisons de créer des classes :
 
 ## Chapitre 2 : Une armée de classes services
 ## Chapitre 3 : Ajuster le résultat d'une bataille avec une classe
-## Chapitre 4 : Optional type-hinting & Semantic Methods
-## Chapitre 5 : Objects are Passed by Reference
-## Chapitre 6 : Fetching Objects from the Database
-## Chapitre 7 : Handling the Object Id
-## Chapitre 8 : Making only one DB Connection with a Property
-## Chapitre 9 : Best Practice: Centralizing Configuration
-## Chapitre 10 : Best Practice: Centralizing the Connection
+## Chapitre 4 : Déclarations de type optionnelles et méthodes sémantiques
+## Chapitre 5 : Les objets sont passés par référence
+## Chapitre 6 : Récupérer des objets depuis une base de données
+## Chapitre 7 : Gérer l'ID d'un objet
+## Chapitre 8 : Ne faire qu'une connexion à la BDD avec un attribut
+## Chapitre 9 : Best Practice: Configuration centralisée
+## Chapitre 10 : Best Practice: Connexion centralisée
 ## Chapitre 11 : Service Container
-## Chapitre 12 : Container: Force Single Objects, Celebrate
-## Chapitre 13 : Container to the Rescue
+## Chapitre 12 : Container: Forcer des objets uniques
+## Chapitre 13 : Les containers à la rescouse
