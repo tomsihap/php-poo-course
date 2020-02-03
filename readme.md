@@ -1,3 +1,38 @@
+- [TP : Programmation orientée objet en PHP](#tp--programmation-orient%c3%a9e-objet-en-php)
+  - [Chapitre 1 : Le projet](#chapitre-1--le-projet)
+  - [Chapitre 2 : Une classe et un objet](#chapitre-2--une-classe-et-un-objet)
+    - [Créer une classe](#cr%c3%a9er-une-classe)
+    - [Créer un objet](#cr%c3%a9er-un-objet)
+    - [Alors c'est quoi, une classe et un objet ?](#alors-cest-quoi-une-classe-et-un-objet)
+      - [Une classe](#une-classe)
+      - [Un objet](#un-objet)
+      - [Les objets sont des sortes d'arrays, en mieux](#les-objets-sont-des-sortes-darrays-en-mieux)
+    - [Un autre avantage sur les arrays](#un-autre-avantage-sur-les-arrays)
+  - [Chapitre 3 : Les méthodes](#chapitre-3--les-m%c3%a9thodes)
+    - [Appeler un attribut à l'intérieur d'une classe](#appeler-un-attribut-%c3%a0-lint%c3%a9rieur-dune-classe)
+      - [Ajouter d'autres attributs](#ajouter-dautres-attributs)
+    - [Valeurs par défaut](#valeurs-par-d%c3%a9faut)
+  - [Chapitre 4 : Des méthodes qui servent vraiment à quelque chose](#chapitre-4--des-m%c3%a9thodes-qui-servent-vraiment-%c3%a0-quelque-chose)
+    - [Arguments de méthodes](#arguments-de-m%c3%a9thodes)
+    - [Améliorons notre méthode](#am%c3%a9liorons-notre-m%c3%a9thode)
+  - [Chapitre 5 : Différents objets](#chapitre-5--diff%c3%a9rents-objets)
+  - [Chapitre 6 : Faire interagir des objets](#chapitre-6--faire-interagir-des-objets)
+  - [Chapitre 7 : Un peu de documentation](#chapitre-7--un-peu-de-documentation)
+  - [Chapitre 8 : Utiliser des objets dans notre projet](#chapitre-8--utiliser-des-objets-dans-notre-projet)
+    - [Déplacer la classe `Ship` dans un fichier à part](#d%c3%a9placer-la-classe-ship-dans-un-fichier-%c3%a0-part)
+    - [On a vraiment besoin des `require` ?](#on-a-vraiment-besoin-des-require)
+    - [Créer de vrais objets !](#cr%c3%a9er-de-vrais-objets)
+    - [Traitons les objets... Comme des objets !](#traitons-les-objets-comme-des-objets)
+    - [Correction des `<select>`](#correction-des-select)
+    - [Amélioration des `<select>`](#am%c3%a9lioration-des-select)
+  - [Chapitre 9 : Accès privé](#chapitre-9--acc%c3%a8s-priv%c3%a9)
+    - [Setters](#setters)
+      - [Exercice](#exercice)
+      - [Exercice](#exercice-1)
+    - [Getters](#getters)
+      - [Exercice](#exercice-2)
+      - [Exercice](#exercice-3)
+
 # TP : Programmation orientée objet en PHP
 > Téléchargez le repository et travaillez dans le dossier `project` !
 
@@ -406,7 +441,7 @@ echo $firstShip->getNameAndSpecs(true);
 ## Chapitre 6 : Faire interagir des objets
 Comme le but de notre application est de faire combattre deux vaisseaux, on va pouvoir rendre les choses un petit peu plus intéressantes.
 
-Pour commencer, essayons de créer une méthode dans notre classe qui permettent à nos vaisseaux de comparer leur force avec un autre vaisseau : c'est une méthode qui prend donc un autre vaisseau en paramètres, et qui compare cet autre vaisseau en paramètres avec le vaisseau lui-même.
+Pour commencer, essayons de créer une méthode dans notre classe qui permettent à nos vaisseaux de comparer leur force avec un autre vaisseau : c'est une méthode qui prend donc un autre vaisseau en argument, et qui compare cet autre vaisseau en argument avec le vaisseau lui-même.
 
 ```php
 class Ship {
@@ -422,7 +457,7 @@ class Ship {
 Avant de remplir cette fonction, voyons comment nous aimerions l'utiliser. Partons du principe que nous ayons créé deux vaisseaux, deux objets `Ship` : `$myShip` et `$otherShip`. On aimerait pouvoir écrire des choses comme :
 
 ```php
-// $myShip appelle une méthode ( doesThisShipHasMoreStrengthThanMe() ) qui permet de se comparer lui-même avec un autre vaisseau, nommé $otherShip, qu'on passe en paramètres à (doesThisShipHasMoreStrengthThanMe() ).
+// $myShip appelle une méthode ( doesThisShipHasMoreStrengthThanMe() ) qui permet de se comparer lui-même avec un autre vaisseau, nommé $otherShip, qu'on passe en arguments à (doesThisShipHasMoreStrengthThanMe() ).
 
 if ($myShip->doesThisShipHasMoreStrengthThanMe($otherShip)) {
     echo $otherShip->name.' a plus de résistance.';
@@ -444,7 +479,7 @@ class Ship {
         
         // Si c'est effectivement vrai, ça retournera true. Sinon, si c'est faux, ça retournera false.
 
-        // L'autre vaisseau, c'est celui passé en paramètres, $ship.
+        // L'autre vaisseau, c'est celui passé en argument, $ship.
 
         // Ce vaisseau, c'est à dire celui qui appelle la méthode pour se comparer, c'est... $this!
 
@@ -454,7 +489,7 @@ class Ship {
 ```
 Et voilà, testez !
 
-Pour être un peu plus cohérent, notre méthode prend bien évidemment en paramètres, un autre vaisseau. Précisons-le dans notre méthode :
+Pour être un peu plus cohérent, notre méthode prend bien évidemment en argument, un autre vaisseau. Précisons-le dans notre méthode :
 
 ```php
 public function doesThisShipHasMoreStrengthThanMe(Ship $ship) {
@@ -621,3 +656,253 @@ die;
 Première étape, on `var_dump` la fonction `getShips` qui doit retourner un array contenant plusieurs objets `Ship`. Ensuite, on arrête notre code ici grâce à `die` : en effet, la suite va sans toute buguer à cause de nos modifications, mieux vaut mettre une pause ici et modifier le code petit à petit !
 
 ### Traitons les objets... Comme des objets !
+Levons nos manches et osons: retirez l'instruction `die` et voyez l'erreur s'afficher ! Essayons de la comprendre : 
+
+```
+Fatal error: Uncaught Error: Cannot use object of type Ship as array in /Applications/MAMP/htdocs/poo-course/project/index.php on line 56
+```
+
+Cette erreur nous dit qu'on ne peut pas utiliser un objet de type Ship comme on utilise un array. ("Cannot use object of type Ship as array").
+
+Eh oui, on a vu la différence ! Les arrays s'utilisent comme ça : `$ship['name']`, les objets s'utilisent comme ça : `$ship->name`.
+
+Comme on a modifié la fonction `getShips()` pour qu'elle ne nous retourne plus un array d'arrays de vaisseaux, mais un array d'objets Ships (donc autrement dit : non plus un tableau de... tableaux "vaisseaux", mais un tableau d'objets Ships), nous ne parlons dorénavant plus d'arrays mais d'objets.
+
+À mon avis, vous avez déjà compris ce qu'il vous reste à faire ! 
+
+Changez dans le fichier `index.php` tous les passages où on utilise les `ships` comme des arrays, et changez-les en objets.
+
+Par exemple, pour le tableau `<table>`, on passe de :
+
+```php
+<tr>
+    <td><?= $ship['name'] ?></td>
+    <td><?= $ship['weapon_power'] ?></td>
+    <td><?= $ship['spatiodrive_booster'] ?></td>
+    <td><?= $ship['strength'] ?></td>
+</tr>
+```
+
+À, tout simplement :
+
+```php
+<tr>
+    <td><?= $ship->name ?></td>
+    <td><?= $ship->weaponPower ?></td>
+    <td><?= $ship->spatiodriveBooster ?></td>
+    <td><?= $ship->strength ?></td>
+</tr>
+```
+
+Un premier problème de réglé ! Corrigez tous les passages où l'on parle d'arrays dans `index.php`, il en reste dans les `<select>`.
+
+**ATTENTION !** Rapellez-vous ! Quand on a des clés dans un tableau, on est en `snake_case`. Quand on a des attributs dans une classe/pour un objet, on est en `camelCase`. Remarquez qu'on est donc passés, par exemple, de `$ship['spatiodrive_booster']` (snake_case) à `$ship->spatiodriveBooster` (camelCase).
+
+### Correction des `<select>`
+
+Normalement, vous devriez avoir réglé le problème des `<select>` comme cela : il n'y a que les `<option>` qui sont dans des `foreach` à changer ! 
+
+Vous avez donc changé : 
+```php
+<option value="<?php echo $key; ?>"><?php echo $ship['name']; ?></option>
+```
+Par : 
+```php
+<option value="<?php echo $key; ?>"><?php echo $ship->name; ?></option>
+```
+
+### Amélioration des `<select>`
+
+Rapellez-vous que nous avons quelques méthodes bien pratiques accessibles depuis nos objets. Par exemple, on peut remplacer `$ship->name` par `$ship->getName()`, mais pour le moment, ça n'est pas très utile.
+
+Par contre, si nous remplaçions `$ship->name` par quelque chose avec plus de détails ? Par exemple... `$ship->getNameAndSpecs()`, pour avoir tous les détails de notre vaisseau lorsque l'on essaie de le selectionner dans le `<select>` !
+
+Changez donc :
+```php
+<option value="<?php echo $key; ?>"><?php echo $ship->name; ?></option>
+```
+
+Par : 
+```php
+<option value="<?php echo $key; ?>"><?php echo $ship->getNameAndSpecs(); ?></option>
+```
+
+Et voilà ! Vous pouvez tester (en fait, testez même sans que je vous le demande, c'est bien mieux). Dans notre `<select>`, on a maintenant les vaisseaux et leurs détails !
+
+## Chapitre 9 : Accès privé
+Revenons à nos classes et notre cher manager. Le manager en chef, d'abord séduit par le concept de classes, a "licencié" la moitié des managers à coup de blaster laser en ayant répéré une tentative de hacking dans le système de classes : en effet, un malin a osé créer un objet comme ceci :
+
+```php
+// Testez vos petits bouts de code comme celui-ci dans play.php !
+$myShip = new Ship();
+$myShip->name = "Hyper Fighter";
+$myShip->weaponPower = "Jar Jar Binks"; // ?!!!
+```
+
+Pour au moins 1000 raisons différentes, on comprend que la valeur de `weaponPower` est anormale ! La moitié de la baie d'arrivée de vaisseaux a explosé à cause de ce fichu bug.
+
+Vous décidez donc de contrôler l'accès aux données dans vos objets. Pour commencer, solution radicale : les attributs `public` sont dorénavant `private` : 
+
+```php
+class Ship {
+    private $name = "";
+    private $weaponPower = 0;
+    private $spatiodriveBooster = 0;
+    private $strength = 0;
+
+    // ...
+}
+```
+
+Qu'est-ce que cela signifie ? Cela signifie que dorénavant, nous n'avons plus accès directement à ces attributs.
+
+Testez (toujours dans `play.php`) : 
+
+```php
+$myShip = new Ship();
+$myShip->name = "Jedi Fighter";
+```
+
+On a une erreur ! 
+
+```
+( ! ) Fatal error: Uncaught Error: Cannot access private property Ship::$name in /Applications/MAMP/htdocs/poo-course/project/play.php on line 5
+```
+
+Essayons de la comprendre : nous ne pouvons pas accéder à l'attribut privé `Ship::$name` (Cannot access private property `Ship::$name`).
+
+Cela veut dire qu'on ne peut plus accéder à l'attribut `->name` car il est... privé (`private`) !
+
+Très bien, alors au moins on est sûrs de ne plus pouvoir avoir d'erreurs de saisie dans nos objets, par contre on ne peut plus rien mettre dedans **du tout**. Comment gérer ce problème ?
+
+### Setters
+
+Nous allons ajouter des méthodes `setters` : ce sont des méthodes qui ne servent qu'à une chose, changer la valeur d'un des attributs de notre classe.
+
+Par exemple :
+
+```php
+class Ship {
+    private $name = "";
+    private $weaponPower = 0;
+    private $spatiodriveBooster = 0;
+    private $strength = 0;
+
+    public function setName($name) {
+        $this->name = $name;
+    }
+
+    // ...
+}
+```
+
+Oulà, que fait cette méthode ? Si on la déchiffre, on comprend qu'elle prend un argument, `$name`. Ensuite, grâce à `$this->name`, elle dit : "donne à l'attribut `name` de l'objet qui a appelé `setName`, la valeur de l'argument `$name`".
+
+Mais, j'ai plus accès à `name`, si ? On ne l'avait pas déclaré en `private` ?
+
+Eh bien si : en fait, quand on met un attribut sur `private`, on n'y a plus accès depuis **l'extérieur** de la classe. Par contre, l'attribut reste accessible **à l'intérieur de** la classe !
+
+Voyons comment utiliser cette méthode. Dans `play.php` :
+
+```php
+$myShip = new Ship();
+$myShip->setName('Jedi Fighter');
+var_dump($myShip);
+```
+
+Et voilà, quand on `var_dump` notre objet, on voit que nous n'avons plus d'erreur, et que le nom a bien été inscrit ! Le gros avantage des `setters`, c'est que nous pouvons dorénavant avoir des validations dans nos données : dans les méthodes `set***()`, on peut valider les données avant de réellement les donner à nos objets. Par exemple, on sait que pour `weaponPower`, on ne doit avoir que des `int`. Voici sa methode `setter` :
+
+```php
+public function setWeaponPower(int $weaponPower)
+{
+    $this->weaponPower = $weaponPower;
+}
+```
+
+Juste comme ça, en indiquant en argument du setter que nous avons besoin d'un `int`, le bug que notre manager en chef a subi ne pourra plus se reproduire !
+
+**NOTE :** Vous remarquerez que notre fonction ne retourne rien. C'est normal, un peu comme un `INSERT` en base de données ne retourne rien, un `setter` n'a pas besoin de retourner quoi que ce soit.
+
+#### Exercice
+C'est à vous : ajoutez des `setters` pour chacun des attributs. **N'oubliez pas** de préciser le type de données attendu dans l'argument de la méthode (par exemple: `int $weaponPower`).
+
+#### Exercice
+Modifiez le fichier `functions.php` qui contient notre fonction `getShips()` avec la liste des vaisseaux, et utiliser des setters !
+
+Exemple, changez :
+```php
+$ship1->name = "Jedi Starfighter";
+```
+
+En : 
+```php
+$ship1->setName("Jedi Starfighter");
+```
+
+### Getters
+Maintenant que nos attributs sont en `private`, nous avons vu que nous n'y avons plus accès en écriture : 
+```php
+$myShip = new Ship();
+$myShip->name = "Jedi Fighter"; // BUG : on doit utiliser ->setName()
+$myShip->setName("Jedi Fighter"); // OK !
+```
+
+Mais nous n'y avons plus accès en lecture nons plus !
+```php
+$myShip = new Ship();
+echo "Vaisseau : " . $myShip->name; // BUG !
+```
+
+Nous allons donc utiliser des `getters`, des méthodes qui nous permettent d'accéder aux données. Par exemple, pour `name` :
+
+```php
+class Ship {
+    // ...
+    public function getName() {
+        return $this->name;
+    }
+}
+```
+
+Et c'est tout ! Notre code ci-dessus peut maintenant être corrigé :
+
+```php
+$myShip = new Ship();
+echo "Vaisseau : " . $myShip->name; // BUG !
+echo "Vaisseau : " . $myShip->getName(); // OK !
+```
+
+Grâce à cela, de la même manière que les `setters` nous permettent de vérifier les données en entrée dans notre objet directement dans la méthode dédiée, les `getters` nous permettent eux, si besoin, de modifier les données avant de les renvoyer. Par exemple, on voudrait le nom en majuscules grâce à la fonction [strtoupper](https://www.php.net/manual/fr/function.strtoupper.php) (et non pas... stormtrooper) : on créée un `getter` dédié !
+
+```php
+class Ship {
+    // ...
+    public function getNameUppercase() {
+        return strtoupper($this->name);
+    }
+}
+```
+
+Pour l'utiliser, simplement :
+```php
+$myShip = new Ship();
+echo "VAISSEAU : " . $myShip->getNameUppercase();
+```
+
+#### Exercice
+Faites de même pour tous les attributs de la classe `Ship`.
+
+#### Exercice
+Maintenant que nous avons des `getters` pour accéder à nos données, allez modifier le fichier `index.php` et changez tous les accès directs aux attributs (par exemple: `$ship->name`) par des getters (par exemple: `$ship->getName()`).
+
+Par exemple :
+```php
+<td><?= $ship->name ?></td>
+```
+
+Sera changé en :
+```php
+<td><?= $ship->getName() ?></td>
+```
+
+Nous avons bien avancé ! Il nous reste aussi à modifier `battle.php`, car avec toutes ces modifications, si on valide le formulaire... Tout casse !
