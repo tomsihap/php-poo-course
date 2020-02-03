@@ -2,7 +2,6 @@
 session_start();
 require __DIR__ . '/functions.php';
 $ships = getShips();
-var_dump($ships);
 $errorMessage = null;
 if (isset($_SESSION['error'])) {
     switch ($_SESSION['error']) {

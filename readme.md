@@ -1,3 +1,45 @@
+- [TP : Programmation orientée objet en PHP](#tp--programmation-orient%c3%a9e-objet-en-php)
+  - [Chapitre 1 : Le projet](#chapitre-1--le-projet)
+  - [Chapitre 2 : Une classe et un objet](#chapitre-2--une-classe-et-un-objet)
+    - [Créer une classe](#cr%c3%a9er-une-classe)
+    - [Créer un objet](#cr%c3%a9er-un-objet)
+    - [Alors c'est quoi, une classe et un objet ?](#alors-cest-quoi-une-classe-et-un-objet)
+      - [Une classe](#une-classe)
+      - [Un objet](#un-objet)
+      - [Les objets sont des sortes d'arrays, en mieux](#les-objets-sont-des-sortes-darrays-en-mieux)
+    - [Un autre avantage sur les arrays](#un-autre-avantage-sur-les-arrays)
+  - [Chapitre 3 : Les méthodes](#chapitre-3--les-m%c3%a9thodes)
+    - [Appeler un attribut à l'intérieur d'une classe](#appeler-un-attribut-%c3%a0-lint%c3%a9rieur-dune-classe)
+      - [Ajouter d'autres attributs](#ajouter-dautres-attributs)
+    - [Valeurs par défaut](#valeurs-par-d%c3%a9faut)
+  - [Chapitre 4 : Des méthodes qui servent vraiment à quelque chose](#chapitre-4--des-m%c3%a9thodes-qui-servent-vraiment-%c3%a0-quelque-chose)
+    - [Arguments de méthodes](#arguments-de-m%c3%a9thodes)
+    - [Améliorons notre méthode](#am%c3%a9liorons-notre-m%c3%a9thode)
+  - [Chapitre 5 : Différents objets](#chapitre-5--diff%c3%a9rents-objets)
+  - [Chapitre 6 : Faire interagir des objets](#chapitre-6--faire-interagir-des-objets)
+  - [Chapitre 7 : Un peu de documentation](#chapitre-7--un-peu-de-documentation)
+  - [Chapitre 8 : Utiliser des objets dans notre projet](#chapitre-8--utiliser-des-objets-dans-notre-projet)
+    - [Déplacer la classe `Ship` dans un fichier à part](#d%c3%a9placer-la-classe-ship-dans-un-fichier-%c3%a0-part)
+    - [On a vraiment besoin des `require` ?](#on-a-vraiment-besoin-des-require)
+    - [Créer de vrais objets !](#cr%c3%a9er-de-vrais-objets)
+    - [Traitons les objets... Comme des objets !](#traitons-les-objets-comme-des-objets)
+    - [Correction des `<select>`](#correction-des-select)
+    - [Amélioration des `<select>`](#am%c3%a9lioration-des-select)
+  - [Chapitre 9 : Accès privé](#chapitre-9--acc%c3%a8s-priv%c3%a9)
+    - [Setters](#setters)
+      - [Exercice](#exercice)
+      - [Exercice](#exercice-1)
+    - [Getters](#getters)
+      - [Exercice](#exercice-2)
+      - [Exercice](#exercice-3)
+  - [Chapitre 10 : Type-Hinting](#chapitre-10--type-hinting)
+    - [Modifier `battle.php`](#modifier-battlephp)
+    - [Changer la déclaration de type (ou type-hinting)](#changer-la-d%c3%a9claration-de-type-ou-type-hinting)
+    - [Exercice](#exercice-4)
+    - [Finir les corrections dans `battle.php`](#finir-les-corrections-dans-battlephp)
+  - [Chapitre 11 : Le constructeur](#chapitre-11--le-constructeur)
+    - [Automatiquement en réparation](#automatiquement-en-r%c3%a9paration)
+
 # TP : Programmation orientée objet en PHP
 > Téléchargez le repository et travaillez dans le dossier `project` !
 
@@ -871,3 +913,125 @@ Sera changé en :
 ```
 
 Nous avons bien avancé ! Il nous reste aussi à modifier `battle.php`, car avec toutes ces modifications, si on valide le formulaire... Tout casse !
+
+## Chapitre 10 : Type-Hinting
+
+Si vous validez le formulaire, qui envoie vers `battle.php`, vous remarquerez que... Tout casse. Première erreur :
+
+```
+( ! ) Fatal error: Uncaught Error: Cannot access private property Ship::$name in /Applications/MAMP/htdocs/poo-course/project/functions.php on line 9
+```
+
+Ou plutôt : "Je ne peux pas accéder à l'attribut privé `name` de la classe `Ship` dans le fichier `functions.php`, en ligne 9". En effet, `battle.php` appelle bien le fichier `functions.php`, c'est normal qu'on puisse avoir des erreurs dedans aussi !
+
+Si on va jeter un oeil à la ligne 9 de `functions.php`, on comprend tout de suite : 
+
+```php
+$ship1->name = "Jedi Starfighter";
+```
+
+Il faut modifier ça pour utiliser un setter !
+
+### Modifier `battle.php`
+Modifiez tout le fichier `battle.php` pour utiliser des setters et des getters. Par exemple :
+
+```php
+// SETTERS
+$ship1->name = "Jedi Starfighter"; // à remplacer par...
+$ship1->setName("Jedi Starfighter"); // ok !
+
+$ship1['name']; // à remplacer par...
+$ship1->name; // ok !
+```
+
+Normalement, une fois que tout a été bien modifié, l'erreur a disparu pour laisser place à une autre erreur :
+
+### Changer la déclaration de type (ou type-hinting) 
+```
+Fatal error: Uncaught TypeError: Argument 1 passed to battle() must be of the type array, object given, called in /Applications/MAMP/htdocs/poo-course/project/battle.php on line 39 and defined in /Applications/MAMP/htdocs/poo-course/project/functions.php on line 44
+```
+
+Un peu plus longue mais toujours aussi claire : "L'argument numéro 1 passé à la fonction `battle()` doit être de type `array`, mais vous m'avez donné un `object`. La fonction est appelée dans `battle.php` en ligne 39, et est définie dans `functions.php` en ligne 44."
+
+Facile ! On comprend clairement qu'on a essayé de passer un objet (sans doute nos `Ship` !) dans une fonction qui s'attendait à recevoir des... arrays.
+
+Allons à la déclaration de la fonction (c'est indiqué dans l'erreur : `functions.php` ligne 44) : en effet, si on regarde la définition de la fonction : 
+
+```php
+function battle(array $ship1, $ship1Quantity, array $ship2, $ship2Quantity)
+```
+
+On comprend mieux ! Remplacez `array` par `Ship` : à l'exercice précédent, on a modifié le code de cette fonction pour utiliser des données d'objets, et plus d'arrays. C'est normal que nous changions aussi les paramètres attendus de cette fonction !
+
+```php
+function battle(Ship $ship1, $ship1Quantity, Ship $ship2, $ship2Quantity)
+```
+
+### Exercice
+
+Enfin, si on actualise, il devrait y avoir une dernière erreur : 
+
+```
+Fatal error: Uncaught TypeError: Argument 1 passed to usedSpatiodriveBoosters() must be of the type array, object given, called in /Applications/MAMP/htdocs/poo-course/project/functions.php on line 59 and defined in /Applications/MAMP/htdocs/poo-course/project/functions.php on line 102
+```
+
+À vous de la corriger.
+
+### Finir les corrections dans `battle.php`
+Il nous reste encore quelques petites erreurs dans `battle.php`. En fait, jusque-là, en allant dans `battle.php` avec le formulaire, on n'a corrigé que `functions.php`.
+
+Il s'agit simplement de changer des données de ships, qui pour l'instant, sont en arrays... et de les transformer en objets ! Changez, comme ci-dessus, le code pour utiliser des setters et des getters.
+
+**ATTENTION !** Dans ce fichier, il y a plusieurs arrays. Certains sont tout à fait légitimes ! Par exemple, des arrays contenant tous les vaisseaux. Ou encore l'array `$_POST` ou `$_SESSION`. On ne parle bien évidemment pas de modifier **tous** les arrays, mais uniquement ceux qui représentent **UN objet Ship**.
+
+**NOTE :** Pensez à bien lire et comprendre le code au fil de vos modifications, c'est la clé de la compréhension.
+
+## Chapitre 11 : Le constructeur
+Voici notre dernier challenge de ce TP : j'aimerais que mes `Ship` puissent être définis comme "cassés", pour pouvoir les mettre en réparation si besoin. Un `Ship` peut être en réparation ou non : on va donc pour l'instant simplement ajouter à notre classe un attribut `$isUnderRepair` (en français, "est en réparation ?") :
+
+```php
+class Ship {
+    // ...
+    private $isUnderRepair;
+}
+```
+
+**Pensez à ajouter un getter et un setter pour cet attribut.**
+
+### Automatiquement en réparation
+Ce qu'on aimerait vraiment faire, c'est que, lorsque l'on créée un nouvel objet `Ship`, que notre `Ship` se mette tout seul en réparation ou non : c'est à dire que, à chaque fois que j'instancie un `Ship` en saisissant `new Ship`, qu'il se passe quelque chose à ce moment là précis.
+
+C'est là où le constructeur nous vient en aide ! Écrivez ça entre vos attributs et vos méthodes existantes :
+
+```php
+class Ship {
+    // ...
+    // En général, à écrire après les attributs
+    public function __construct() {
+        echo "Appelé automatiquement !";
+    }
+    // En général, à écrire avant les autres méthodes
+    // ...
+}
+```
+
+Testez dans `play.php` ! Créez un nouvel objet et voyez ce qu'il se passe : à l'appel de `new Ship`, on a la phrase `Appelé automatiquement !` qui apparaît. Le constructeur, c'est à dire cette fonction spéciale, est **toujours** appelé lors d'un `new ClassName`.
+
+À quoi ça peut bien nous servir, d'appeler un constructeur ?
+
+En l'occurrence, dans notre petit problème, c'est très utile : on peut par exemple dire qu'à chaque fois que l'on créée un objet vaisseau, il a 30% de chances de tomber en réparation ! On peut donc modifier notre constructeur comme ça :
+
+```php
+class Ship {
+    // ...
+    public function __construct() {
+        // On met true ou false dans isUnderRepair :
+        // si rand(1,100) < 30 est vrai (c'est à dire, si un nombre aléatoire tiré entre 1 et 100 est plus petit que 30, c'est à dire... 30% de chances !), alors on met "true" dans isUnderRepair. Sinon, false.
+        $this->isUnderRepair = mt_rand(1, 100) < 30;
+    }
+}
+```
+
+Et voilà ! Faites un `var_dump` de votre vaisseau dans `play.php` et actualisez plusieurs fois pour voir ce que ça donne : une fois sur trois environ, le vaisseau tombe en réparation (`$isUnderRepair` égal à `true`).
+
+La suite maintenant : utiliser ce nouvel attribut à notre classe, et indiquer dans notre application si le vaisseau est disponible ou pas !

@@ -48,9 +48,9 @@ $outcome = battle($ship1, $ship1Quantity, $ship2, $ship2Quantity);
         <h2>Le combat :</h2>
         <p>
             <!-- On affiche la quantité de vaisseaux (au pluriel si la quantité est supérieure à 1) -->
-            <?php echo $ship1Quantity; ?> <?php echo $ship1['name']; ?><?php echo $ship1Quantity > 1 ? 's' : ''; ?>
+            <?php echo $ship1Quantity; ?> <?php echo $ship1->getName(); ?><?php echo $ship1Quantity > 1 ? 's' : ''; ?>
             <strong>VERSUS</strong>
-            <?php echo $ship2Quantity; ?> <?php echo $ship2['name']; ?><?php echo $ship2Quantity > 1 ? 's' : ''; ?>
+            <?php echo $ship2Quantity; ?> <?php echo $ship2->getName(); ?><?php echo $ship2Quantity > 1 ? 's' : ''; ?>
         </p>
     </div>
 </div>
@@ -62,7 +62,7 @@ $outcome = battle($ship1, $ship1Quantity, $ship2, $ship2Quantity);
         <h3 class="text-center audiowide">
             Gagnant :
             <?php if ($outcome['winning_ship']) : ?>
-                <?php echo $outcome['winning_ship']['name']; ?>
+                <?php echo $outcome['winning_ship']->getName(); ?>
             <?php else : ?>
                 Personne
             <?php endif; ?>
@@ -71,11 +71,11 @@ $outcome = battle($ship1, $ship1Quantity, $ship2, $ship2Quantity);
             <?php if ($outcome['winning_ship'] == null) : ?>
                 Les deux opposants se sont détruits lors de leur bataille épique.
             <?php else : ?>
-                Le groupe de <?php echo $outcome['winning_ship']['name']; ?>
+                Le groupe de <?php echo $outcome['winning_ship']->getName(); ?>
                 <?php if ($outcome['used_spatiodrive_boosters']) : ?>
                     a utilisé son booster Spatiodrive pour détruire l'adversaire !
                 <?php else : ?>
-                    a été plus puissant et a détruit le groupe de <?php echo $outcome['losing_ship']['name'] ?>s
+                    a été plus puissant et a détruit le groupe de <?php echo $outcome['losing_ship']->getName() ?>s
                 <?php endif; ?>
             <?php endif; ?>
         </p>

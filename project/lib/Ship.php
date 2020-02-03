@@ -6,6 +6,12 @@ class Ship {
     private $weaponPower = 0;
     private $spatiodriveBooster = 0;
     private $strength = 0;
+    private $isUnderRepair = false;
+
+    public function __construct()
+    {
+        $this->isUnderRepair = mt_rand(1, 100) < 30;
+    }
 
     public function setName(string $name)
     {
@@ -25,6 +31,11 @@ class Ship {
     public function setStrength(int $strength)
     {
         $this->strength = $strength;
+    }
+
+    public function setIsUnderRepair(bool $isUnderRepair)
+    {
+        $this->isUnderRepair = $isUnderRepair;
     }
 
 
@@ -56,6 +67,11 @@ class Ship {
     public function getNameUppercase()
     {
         return strtoupper($this->name);
+    }
+
+    public function getIsUnderRepair()
+    {
+        return $this->isUnderRepair;
     }
 
     public function getNameAndSpecs(bool $useShortFormat = false) {
