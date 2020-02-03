@@ -1,9 +1,7 @@
 <?php
-session_start();
-require __DIR__ . '/functions.php';
-require __DIR__ . '/lib/BattleManager.php';
-
-$ships = getShips();
+require __DIR__ . '/bootstrap.php';
+$shipLoader = new ShipLoader();
+$ships = $shipLoader->getShips();
 
 // On vérifie que les données du formulaire existent :
 $ship1Name      = isset($_POST['ship1_name']) ? $_POST['ship1_name'] : null;
@@ -62,21 +60,21 @@ $outcome = $battleManager->battle($ship1, $ship1Quantity, $ship2, $ship2Quantity
 
         <h3 class="text-center audiowide">
             Gagnant :
-            <?php if ($outcome['winning_ship']) : ?>
-                <?php echo $outcome['winning_ship']->getName(); ?>
+            <?php if ($outcome->getWinningShip()) : ?>
+                <?php echo $outcome->getWinningShip()->getName(); ?>
             <?php else : ?>
                 Personne
             <?php endif; ?>
         </h3>
         <p class="text-center">
-            <?php if ($outcome['winning_ship'] == null) : ?>
+            <?php if ($outcome->getWinningShip() == null) : ?>
                 Les deux opposants se sont détruits lors de leur bataille épique.
             <?php else : ?>
-                Le groupe de <?php echo $outcome['winning_ship']->getName(); ?>
-                <?php if ($outcome['used_spatiodrive_boosters']) : ?>
+                Le groupe de <?php echo $outcome->getWinningShip()->getName(); ?>
+                <?php if ($outcome->whereBoostersUsed()) : ?>
                     a utilisé son booster Spatiodrive pour détruire l'adversaire !
                 <?php else : ?>
-                    a été plus puissant et a détruit le groupe de <?php echo $outcome['losing_ship']->getName() ?>s
+                    a été plus puissant et a détruit le groupe de <?php echo $outcome->getLosingShip()->getName() ?>s
                 <?php endif; ?>
             <?php endif; ?>
         </p>

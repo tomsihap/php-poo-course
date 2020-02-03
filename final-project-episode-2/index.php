@@ -1,7 +1,8 @@
 <?php
-session_start();
-require __DIR__ . '/functions.php';
-$ships = getShips();
+require __DIR__ . '/bootstrap.php';
+
+$shipLoader = new ShipLoader();
+$ships = $shipLoader->getShips();
 $errorMessage = null;
 if (isset($_SESSION['error'])) {
     switch ($_SESSION['error']) {

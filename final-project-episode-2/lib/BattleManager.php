@@ -1,5 +1,4 @@
 <?php
-
 class BattleManager {
     /**
      * L'algorithme de combat super complexe !
@@ -21,13 +20,13 @@ class BattleManager {
         while ($ship1Health > 0 && $ship2Health > 0) {
             // On vérifie à chaque tour si quelqu'un a utilisé le spatiodrive booster
             // en appelant la fonction usedSpatiodriveBoosters()
-            if (usedSpatiodriveBoosters($ship1)) {
+            if ($this->usedSpatiodriveBoosters($ship1)) {
                 $ship2Health = 0;
                 $ship1UsedSpatiodriveBoosters = true;
                 // Si le spatiodrive booster a été utilisé, on break la boucle while
                 break;
             }
-            if (usedSpatiodriveBoosters($ship2)) {
+            if ($this->usedSpatiodriveBoosters($ship2)) {
                 $ship1Health = 0;
                 $ship1UsedSpatiodriveBoosters = true;
                 // Si le spatiodrive booster a été utilisé, on break la boucle while
@@ -57,10 +56,13 @@ class BattleManager {
             $usedSpatiodriveBoosters = $ship1UsedSpatiodriveBoosters;
         }
 
-        return array(
-            'winning_ship' => $winningShip,
-            'losing_ship' => $losingShip,
-            'used_spatiodrive_boosters' => $usedSpatiodriveBoosters,
-        );
+        return new BattleResult($usedSpatiodriveBoosters, $winningShip, $losingShip);
+    }
+
+    function usedSpatiodriveBoosters(Ship $ship)
+    {
+        $spatiodriveBoostersProbability = $ship->getSpatiodriveBooster() / 100;
+        // On tire un nombre entre 1 et 100, s'il est inférieur à la probabilité du booster Spatiodrive, alors on retourne true :
+        return mt_rand(1, 100) <= ($spatiodriveBoostersProbability * 100);
     }
 }
