@@ -81,26 +81,28 @@ class Ship {
 
     public function getNameAndSpecs(bool $useShortFormat = false) {
 
-    if ($useShortFormat) {
-    return sprintf(
-    '%s (F:%s, BS:%s, R:%s)',
-    $this->name,
-    $this->weaponPower,
-    $this->spatiodriveBooster,
-    $this->strength);
-    }
-    else {
-    return sprintf(
-    'Vaisseau : (Force: %s, Booster spatiodrive: %s, Résistance: %s)',
-    $this->name,
-    $this->weaponPower,
-    $this->spatiodriveBooster,
-    $this->strength);
-    }
+        if ($useShortFormat) {
+            return sprintf(
+                '%s (F:%s, BS:%s, R:%s)',
+                $this->name,
+                $this->weaponPower,
+                $this->spatiodriveBooster,
+                $this->strength
+            );
+        }
+        else {
+            return sprintf(
+                'Vaisseau : (Force: %s, Booster spatiodrive: %s, Résistance: %s)',
+                $this->name,
+                $this->weaponPower,
+                $this->spatiodriveBooster,
+                $this->strength
+            );
+        }
     }
 
     public function doesThisShipHasMoreStrengthThanMe(Ship $ship)
     {
-    return $ship->strength > $this->strength;
+        return $ship->strength > $this->strength;
     }
 }
