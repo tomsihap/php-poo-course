@@ -39,6 +39,12 @@
     - [Finir les corrections dans `battle.php`](#finir-les-corrections-dans-battlephp)
   - [Chapitre 11 : Le constructeur](#chapitre-11--le-constructeur)
     - [Automatiquement en réparation](#automatiquement-en-r%c3%a9paration)
+    - [Indiquer si le vaisseau est en réparation](#indiquer-si-le-vaisseau-est-en-r%c3%a9paration)
+    - [Codons ça dans l'application !](#codons-%c3%a7a-dans-lapplication)
+    - [Rendre disponible uniquement les vaisseaux fonctionnels](#rendre-disponible-uniquement-les-vaisseaux-fonctionnels)
+    - [Arguments dans le constructeur](#arguments-dans-le-constructeur)
+    - [Ajoutons ça à notre application](#ajoutons-%c3%a7a-%c3%a0-notre-application)
+    - [Quand passer des arguments au constructeur, quand utiliser des setters ?](#quand-passer-des-arguments-au-constructeur-quand-utiliser-des-setters)
 
 # TP : Programmation orientée objet en PHP
 > Téléchargez le repository et travaillez dans le dossier `project` !
@@ -227,7 +233,7 @@ echo "Nom du vaisseau : " . $myShip->getName(); // Affiche "TIE Fighter", car $t
 $mySecondShip = new Ship();
 $mySecondShip->name = "X-Wing Fighter";
 
-echo "Nom du vaisseau : " . $myShip->getName(); // Affiche "X-Wing Fighter", car $this correspond à $mySecondShip ici
+echo "Nom du vaisseau : " . $mySecondShip->getName(); // Affiche "X-Wing Fighter", car $this correspond à $mySecondShip ici
 ```
 
 #### Ajouter d'autres attributs
@@ -335,7 +341,7 @@ class Ship {
     public function getNameAndSpecs(bool $useShortFormat) {
 
         if ($useShortFormat) {
-            return $this->name . "(F:" . $this->weaponPower . ", BS: " . $this->spatiodriveBooster . ", R : " . $this->strength . ")"; 
+            return $this->name . "(F:" . $this->weaponPower . ", BS: " . $this->spatiodriveBooster . ", R : " . $this->strength . ")";
         }
         else {
             return "Vaisseau :" . $this->name . "(Force:" . $this->weaponPower . ", Booster spatiodrive: " . $this->spatiodriveBooster . ", Résistance : " . $this->strength . ")";
@@ -372,7 +378,7 @@ class Ship {
         }
         else {
             return sprintf(
-                'Vaisseau : (Force: %s, Booster spatiodrive: %s, Résistance: %s)',
+                'Vaisseau : %s (Force: %s, Booster spatiodrive: %s, Résistance: %s)',
                 $this->name,
                 $this->weaponPower,
                 $this->spatiodriveBooster,
@@ -1035,3 +1041,202 @@ class Ship {
 Et voilà ! Faites un `var_dump` de votre vaisseau dans `play.php` et actualisez plusieurs fois pour voir ce que ça donne : une fois sur trois environ, le vaisseau tombe en réparation (`$isUnderRepair` égal à `true`).
 
 La suite maintenant : utiliser ce nouvel attribut à notre classe, et indiquer dans notre application si le vaisseau est disponible ou pas !
+
+### Indiquer si le vaisseau est en réparation
+Avec des icônes Font Awesome : si le vaisseau est en réparation, on affiche un nuage (`fa-cloud`), s'il est disponible, un soleil (`fa-sun-o`).
+
+Comment vérifier que mon vaisseau est disponible ? C'est à dire, comment vérifier que `isUnderRepair` n'est pas sur `false` ? Facile, comme on a fait nos getter et setter :
+
+```php
+$myShip = new Ship();
+$myShip->getIsUnderRepair(); // retourne un booléen
+
+// Testons si le vaisseau est en réparation :
+if ($myShip->getIsUnderRepair()) {
+    echo "Le vaisseau " . $myShip->getName() . " est en réparation.";
+}
+else {
+    echo "Le vaisseau " . $myShip->getName() . " est en disponible !";
+}
+```
+
+Mais rien nous empêche d'avoir une méthode qui soit plus... "lisible". C'est une très bonne pratique en développement: nous ne sommes pas limités par la taille de notre code ! Rien ne nous empêche d'avoir des noms de variables très longs mais très parlants, des noms de méthodes très parlants aussi, quitte à avoir des méthodes qui font presque la même chose, mais qui, à l'usage, sont bien plus parlantes.
+
+```php
+class Ship {
+    // ...
+
+    /**
+     * Notre getter actuel.
+     * Si on lit le nom de la méthode littéralement : "retrouve est-ce que le vaisseau est en réparation".
+     * Pas très très lisible.
+     * Ce qui nous retourne :
+     * true s'il est en réparation, donc indisponible,
+     * false s'il n'est pas en réparation, donc disponible.
+     */
+    public function getIsUnderRepair() {
+        return $this->isUnderRepair;
+    }
+
+    /**
+     * Notre nouvelle méthode.
+     * Si on lit la nom de la méthode littéralement : "est-ce que le vaisseau est fonctionnel ?"
+     * Si on prend juste $thiss->isUnderRepair, si isUnderRepair est sur "false", la réponse à notre question serait... "false". Pas très logique.
+     * On retourne donc l'inverse de isUnderRepair :
+     * 
+     * "Est-ce que le vaisseau est fonctionnel ?"
+     * Si isUnderRepair = false, on retourne... Oui ! Donc "true"
+     * Si isUnderRepair = true, on retourne... Non ! Donc "false"/
+     * 
+     * Pour cela, on retourne simplment $this->isUnderRepair, avec un "!" devant pour inverser la valeur.
+     */
+    public function isFunctional() {
+        return !$this->isUnderRepair;
+    }
+}
+```
+
+À l'usage :
+
+
+```php
+$myShip = new Ship();
+$myShip->isFunctional(); // retourne un booléen
+
+// Testons si le vaisseau est en fonctionnel :
+if ($myShip->isFunctional()) {
+    echo "Le vaisseau " . $myShip->getName() . " est en disponbile !";
+}
+else {
+    echo "Le vaisseau " . $myShip->getName() . " est en réparation.";
+}
+```
+
+C'est donc quasiment la même chose ! Notre condition est du coup inversée (on ne teste plus "est-ce que mon vaisseau est en panne", mais "est-ce que mon vaisseau est fonctionnel"). D'un point de vue logique il n'y a aucun changement, mais d'un point de vue pratique, c'est plus évident à penser dans ce sens-là.
+
+### Codons ça dans l'application !
+
+On a toutes les clés pour ajouter ça dans notre application ! Pour commencer, modifions la `<table>` de `index.php`. Dans l'en-tête du tableau, ajoutons une nouvelle colonne qui contiendra le statut de notre vaisseau :
+
+```html
+<thead>
+    <tr>
+        <!-- ... -->
+        <th>Statut</th>
+        <!-- ... -->
+    </tr>
+</thead>
+```
+
+Ensuite, comme notre tableau possède une nouvelle colonne, ajoutons dans le `foreach` qui nous affiche toutes les lignes `<tr><td>` une nouvelle colonne :
+
+```HTML
+<?php foreach ($ships as $ship) : ?>
+            <tr>
+                <td><?= $ship->getName() ?></td>
+                <td><?= $ship->getWeaponPower() ?></td>
+                <td><?= $ship->getSpatiodriveBooster() ?></td>
+                <td><?= $ship->getStrength() ?></td>
+                <td><!-- NOUVELLE CASE À REMPLIR QUI CONTIENDRA LE STATUT ! --></td>
+            </tr>
+        <?php endforeach; ?>
+```
+
+Dans ce nouveau `<td>`, on va pouvoir mettre le statut du vaisseau. Pour le moment, si on indique juste `$ship->isFunctional()` ou `$ship->getIsUnderRepair()` (rapellez-vous: on peut utiliser l'une ou l'autre, avoir les deux c'est juste pour se faciliter la vie !), on verra juste `true` ou `false`, ce qui n'est pas très joli.
+
+On va plutôt mettre une condition dans ce `<td>` pour afficher une icône Font Awesome à la place !
+
+Remplacez la ligne : 
+```php
+<td><!-- NOUVELLE CASE À REMPLIR QUI CONTIENDRA LE STATUT ! --></td>
+```
+
+Par :
+
+```php
+<td>
+<?php if ($ship->isFunctional()): ?>
+    <i class="fa fa-sun-o"></i>
+<?php else: ?>
+    <i class="fa fa-cloud"></i>
+<?php endif; ?>
+</td>
+```
+
+Et voilà, si tout se passe bien... Ça marche ! Actualisez plusieurs fois votre page : comme on a créé des objets pour nos vaisseaux, et que dans le constructeur, on dit de mettre le vaisseau en maintenance 30 fois sur 100, les vaisseaux en maintenance ne sont jamais les même en actualisant la page.
+
+### Rendre disponible uniquement les vaisseaux fonctionnels
+
+Dernière modification à effectuer : changer la liste des vaisseaux dans les `<select><option>`. C'est à vous : faites en sorte que nous n'ayons QUE les vaisseaux fonctionnels qui s'affichent dans la liste !
+
+Prennez le temps de bien essayer avant de regarder la correction.
+
+C'est fait ? Voilà une manière de faire :
+
+On a déjà ce code : 
+```php
+<?php foreach ($ships as $key => $ship) : ?>
+    <option value="<?php echo $key; ?>"><?php echo $ship->getNameAndSpecs(); ?></option>
+<?php endforeach; ?>
+```
+
+Qui créée une option pour chacun des `ship`. On pourrait, pourquoi pas, mettre une condition avant d'afficher le vaisseau !
+
+```php
+<?php foreach ($ships as $key => $ship) : ?>
+    <?php if ($ship->isFunctional()) : ?>
+        <option value="<?php echo $key; ?>"><?php echo $ship->getNameAndSpecs(); ?></option>
+    <?php endif; ?>
+<?php endforeach; ?>
+```
+
+Modifiez bien ce code dans les deux `<select>`. Et voilà, seuls les vaisseaux fonctionnels s'afficheront dans les `<select>` ! Les autres sont en réparation, ils ne peuvent pas combattre, tout va bien.
+
+### Arguments dans le constructeur
+Maintenant, jouons un peu avec notre constructeur. On a maintenant bien compris comment il fonctionnait : à chaque fois que j'instancie une classe (donc, que je créée un objet), si la classe a un constructeur (la méthode `public function __construct() {}`), le constructeur se lance immédiatement.
+
+Le constructeur permet autre chose : de prendre des valeurs en argument, comme une fonction ! Voyons cet exemple :
+
+```php
+class Ship {
+    // ...
+
+    public function __construct(string $name) {
+        // ...
+        $this->setName($name);
+    }
+}
+```
+
+Qu'est-ce que ce code veut dire ? En fait, le constructeur prend en argument un `$name` et le passe directement dans le setter `name` de notre objet. Bon, concrètement, qu'est-ce que ça veut dire et comment ça marche ?
+
+Testez ce code dans `play.php` :
+
+```php
+$myShip = new Ship("Firefighter Ship");
+var_dump($ship);
+die;
+```
+
+On remarque dans le `var_dump` que notre vaisseau possède un name... Sans avoir à utiliser `setName` ! Génial !
+
+Utiliser des arguments dans le constructeur marche comme pour une fonction : on peut les mettre avec une valeur par défaut, les rendre nullable, les typer... S'il n'y a pas de valeur par défaut (comme ici), si on oublie le constructeur, le code plantera.
+
+C'est très pratique pour obliger le développeur à donner des valeurs obligatoires à notre objet. Par exemple, un vaisseau possèdera obligatoirement un nom : autant le mettre dans le constructeur, de sorte à créer nos vaisseaux directement avec un nom.
+
+Voyez la différence :
+
+```php
+// Avant :
+$myShip = new Ship();
+$myShip->setName('Nextgen Ship');
+
+// Après :
+$myShip = new Ship('Nextgen Ship');
+```
+
+### Ajoutons ça à notre application
+Maintenant que notre constructeur prend en argument un `name`, changez le code dans `functions.php` et appelez les vaisseaux avec le constructeur. On n'a plus besoin du `->setName()` dans le fichier `functions.php` puisque dorénavant, le nom est passé dans le constructeur `new Ship('nom du vaisseau')` !
+
+### Quand passer des arguments au constructeur, quand utiliser des setters ?
+C'est vraiment à vous de décider. Dans notre cas, le fait d'avoir le nom dans le constructeur nous oblige à avoir des vaisseaux qui ont forcément un nom, donc d'instancier l'objet `Ship` avec un nom immédiatement, autrement on prendrait le risque d'avoir des vaisseaux sans nom - gênant pour l'inventaire. Les autres valeurs restent facultatives, donc pas besoin ici de les ajouter au constructeur (bien que ce soit possible, évidemment !)
