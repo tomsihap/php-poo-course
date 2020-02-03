@@ -29,8 +29,6 @@ function getShips() {
     ];
 }
 
-
-
 /**
  * L'algorithme de combat super complexe !
  *
@@ -38,19 +36,19 @@ function getShips() {
  */
 function battle(array $ship1, $ship1Quantity, array $ship2, $ship2Quantity)
 {
-
     // Calcul de la résistance totale de chaque groupe (strength * nombre de combattants)
     $ship1Health = $ship1['strength'] * $ship1Quantity;
     $ship2Health = $ship2['strength'] * $ship2Quantity;
 
     // Par défaut, personne n'a utilisé le spatiodrive booster
     $ship1UsedSpatiodriveBoosters = false;
-    $ship1UsedSpatiodriveBoosters = false;
+    $ship2UsedSpatiodriveBoosters = false;
 
     // Tant que les 2 groupes ont une résistance supérieure à 0, on combat :
     while ($ship1Health > 0 && $ship2Health > 0) {
         // On vérifie à chaque tour si quelqu'un a utilisé le spatiodrive booster
         // en appelant la fonction usedSpatiodriveBoosters()
+
         if (usedSpatiodriveBoosters($ship1)) {
             $ship2Health = 0;
             $ship1UsedSpatiodriveBoosters = true;
@@ -59,7 +57,7 @@ function battle(array $ship1, $ship1Quantity, array $ship2, $ship2Quantity)
         }
         if (usedSpatiodriveBoosters($ship2)) {
             $ship1Health = 0;
-            $ship1UsedSpatiodriveBoosters = true;
+            $ship2UsedSpatiodriveBoosters = true;
             // Si le spatiodrive booster a été utilisé, on break la boucle while
             break;
         }
@@ -74,12 +72,12 @@ function battle(array $ship1, $ship1Quantity, array $ship2, $ship2Quantity)
     if ($ship1Health <= 0 && $ship2Health <= 0) {
         $winningShip = null;
         $losingShip = null;
-        $usedSpatiodriveBoosters = $ship1UsedSpatiodriveBoosters || $ship1UsedSpatiodriveBoosters;
+        $usedSpatiodriveBoosters = $ship1UsedSpatiodriveBoosters || $ship2UsedSpatiodriveBoosters;
     } elseif ($ship1Health <= 0) {
         // Si la résistance du groupe 1 tombe à 0
         $winningShip = $ship2;
         $losingShip = $ship1;
-        $usedSpatiodriveBoosters = $ship1UsedSpatiodriveBoosters;
+        $usedSpatiodriveBoosters = $ship2UsedSpatiodriveBoosters;
     } else {
         // Sinon, c'est la résistance du groupe 2 qui tombe à 0
         $winningShip = $ship1;
@@ -96,7 +94,7 @@ function battle(array $ship1, $ship1Quantity, array $ship2, $ship2Quantity)
 
 function usedSpatiodriveBoosters(array $ship)
 {
-    $spatiodriveBoostersProbability = $ship['spatiodrive_booster'] / 100;
+    $spatiodriveBoostersProbability = $ship['spatiodrive_booster'];
     // On tire un nombre entre 1 et 100, s'il est inférieur à la probabilité du booster Spatiodrive, alors on retourne true :
-    return mt_rand(1, 100) <= ($spatiodriveBoostersProbability * 100);
+    return mt_rand(1, 100) <= $spatiodriveBoostersProbability;
 }

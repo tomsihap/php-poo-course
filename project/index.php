@@ -7,7 +7,7 @@ $errorMessage = null;
 if (isset($_SESSION['error'])) {
     switch ($_SESSION['error']) {
         case 'missing_data':
-            $errorMessage = 'N\'oubliez pas de séléctionner des vaisseaux pour  le combat !';
+            $errorMessage = 'N\'oubliez pas de séléctionner des vaisseaux pour le combat !';
             break;
         case 'bad_ships':
             $errorMessage = 'Vous essayez de combattre avec un vaisseau non enregistré dans les registres galactiques.';

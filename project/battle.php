@@ -4,13 +4,14 @@ require __DIR__ . '/functions.php';
 
 $ships = getShips();
 
+var_dump($_POST);
 // On vérifie que les données du formulaire existent :
 $ship1Name      = isset($_POST['ship1_name']) ? $_POST['ship1_name'] : null;
 $ship1Quantity  = isset($_POST['ship1_quantity']) ? $_POST['ship1_quantity'] : 1;
 $ship2Name      = isset($_POST['ship2_name']) ? $_POST['ship2_name'] : null;
 $ship2Quantity  = isset($_POST['ship2_quantity']) ? $_POST['ship2_quantity'] : 1;
 
-// On redirige avec une erreur en session.
+// On redirige avec une erreur en session s'il y a une erreur.
 if (!$ship1Name || !$ship2Name) {
     $_SESSION['error'] = 'missing_data';
     header('Location: index.php');
@@ -37,6 +38,7 @@ $ship2 = $ships[$ship2Name];
 
 // On passe toutes nos données dans la fonction battle(), et on met le resultat dans $outcome ( = "résultat")
 $outcome = battle($ship1, $ship1Quantity, $ship2, $ship2Quantity);
+var_dump($outcome);
 ?>
 
 <?php include('_partials/_header.php'); ?>
@@ -56,9 +58,6 @@ $outcome = battle($ship1, $ship1Quantity, $ship2, $ship2Quantity);
 </div>
 <div class="card">
     <div class="card-body text-center">
-        <h2></h2>
-        <p></p>
-
         <h3 class="text-center audiowide">
             Gagnant :
             <?php if ($outcome['winning_ship']) : ?>
