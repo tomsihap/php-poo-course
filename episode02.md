@@ -635,19 +635,566 @@ Et voilà ! Normalement, dans les résultats, on voit la nouvelle valeur de la r
 
 Vous allez modifier le `ShipLoader` de sorte à récupérer des vaisseaux issus d'une base de données. Ce qui implique plusieurs étapes à suivre :
 
-1. Créez une base de données et une table de `Ship`.
-2. Les `Ship` auront les même champs que leur classe Model, avec bien sûr un `id` auto-incrémenté.
-3. Du coup, il faudra rajouter un attribut `$id` (avec ses setters/getters) dans la classe `Ship`, puisqu'ils ont dorénavant un ID !
-4. Créer une méthode dans `ShipLoader` nommée `queryForShips()`. Elle sera privée, car elle ne sert qu'au `ShipLoader`.
-5. Dans cette méthode, vous instancierez un `new PDO` qui se connecte à la base de données et récupère la liste des `Ship` de la base de données (rapellez-vous : prepare, execute...)
-6. Dans la méthode `getShips()`, appelez la méthode privée `queryforShips()` pour mettre les résultats dans une variable: par exemple, `$shipsDb = $this->queryForShips();` et var_dumpez les résultats.
-7. PDO nous retourne un array de tableaux avec les données de chaque `Ship` ! Mais il nous faut des... Objets `Ship`. Faites maintenant une boucle `foreach`, qui permette de prendre les données issues de la base de données, et de créer des objets.
-8. Dans la boucle, vous mettrez les objets ainsi créés dans un tableau `$ships`.
-9. Enfin, retournez simplement `$ships` !
+1. Créez une base de données et une table de `Ship`. Vous trouverez la requête SQL complète juste après. Les `Ship` en base de données auront les même champs que leur classe Model, avec bien sûr un `id` auto-incrémenté.
+2. Créer une méthode dans `ShipLoader` nommée `queryForShips()`. Elle sera privée, car elle ne sert qu'au `ShipLoader`.
+3. Dans cette méthode, vous instancierez un `new PDO` qui se connecte à la base de données et récupère la liste des `Ship` de la base de données (rapellez-vous : prepare, execute...) dans un array `$shipsArray`.
+4. Dans la méthode `getShips()`, appelez la méthode privée `queryforShips()` pour mettre les résultats dans une variable: par exemple, `$shipsDb = $this->queryForShips();` et var_dumpez les résultats.
+5. PDO nous retourne un array de tableaux avec les données de chaque `Ship` ! Mais il nous faut des... Objets `Ship`. Faites maintenant une boucle `foreach`, qui permette de prendre les données issues de la base de données, et de créer des objets.
+6. Dans la boucle, vous mettrez les objets ainsi créés dans un tableau `$ships`.
+7. Enfin, retournez simplement `$ships` !
 
+### Requête SQL
+```sql
+CREATE TABLE `ship` (
+ `id` int(11) NOT NULL AUTO_INCREMENT,
+ `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+ `weapon_power` int(4) NOT NULL,
+ `spatiodrive_booster` int(4) NOT NULL,
+ `strength` int(4) NOT NULL,
+ `is_under_repair` tinyint(1) NOT NULL,
+ PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+```
+
+### Un peu d'aide ?
+En fait, la classe `ShipLoader` ne contiendra plus grand chose par rapport au début. Voici la classe complète avec uniquement les commentaires :
+
+```php
+<?php
+class ShipLoader
+{
+    /**
+     * Retourne tous les ships sous forme d'objets Ships.
+     * 
+     * @return Ship[] Tableau d'objets Ship
+     */
+    public function getShips()
+    {
+        // 1. On prépare notre tableau de Ships
+        $ships = [];
+
+        // 2. On appelle la méthode privée queryForShips() qui nous retourne les Ships de la BDD
+        // sous forme de tableau (passez $shipsData dans un var_dump() pour voir à quoi ça ressemble)
+        $shipsData = "A REMPLACER !";
+
+        // 3. On foreach le tableau de données qui vient de la BDD...
+        // Remplacez évidemment $A et $B ;)
+        foreach ($A as $B {
+
+            // 4. .. pour créer des objets, et non plus des arrays!
+            $ship = new Ship("??????");
+            // ...
+            // ...
+
+            // 5. Notre objet créé, on l'ajoute au tableau de Ships.
+            $ships[] = $ship;
+        }
+
+        // Enfin, on retourne le tableau de Ships !
+        return $ships;
+    }
+
+    /**
+     * Retrouve en BDD la liste des Ships.
+     * 
+     * @return array[] Tableau de tableaux de ships
+     */
+    private function queryForShips()
+    {
+
+        // 1. On se connecte à PDO
+        $pdo = "À REMPLACER";
+
+        // 2. On configure PDO (optionnel)
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        // 3. On prépare et exécute la requête
+        // ...
+        // ...
+
+        // 4. On récupère les données (fetchAll car il y a plusieurs éléments)
+        $shipsArray = "À REMPLACER";
+
+        // 5. On retourne les données
+        return $shipsArray;
+    }
+}
+```
+
+### Résumé
+La classe `ShipLoader` ne contient plus de données en dur, ça y est ! En quelques minutes, on se trouve maintenant avec une classe qui récupère dynamiquement nos données réelles en base de données, une classe qui contient finalement moins de lignes qu'avant (bah oui, on n'a plus d'objets Ship à écrire à la main) et une intégration avec PDO (qui est une classe par ailleurs, maintenant on la comprend mieux !)
 
 ## Chapitre 7 : Gérer l'ID d'un objet
+Si on teste notre application de nouveau, il y a un bug ! On a une erreur :
+```
+N'oubliez pas de séléctionner des vaisseaux pour  le combat !
+```
+
+Vous avez très certainement séléctionné un vaisseau pour combattre.... Et pourtant ! Que s'est-il passé ? Si on observe le code de `index.php`, regardons les `<select>` :
+
+```php
+<select class="center-block form-control dropdown-toggle" name="ship1_name">
+    <option value="">Choisir un vaisseau</option>
+    <?php foreach ($ships as $key => $ship) : ?>
+        <?php if ($ship->isFunctional()) : ?>
+            <option value="<?php echo $key; ?>"><?php echo $ship->getNameAndSpecs(); ?></option>
+        <?php endif; ?>
+    <?php endforeach; ?>
+</select>
+// ...
+<select class="center-block form-control dropdown-toggle" name="ship2_name">
+    <option value="">Choisir un vaisseau</option>
+    <?php foreach ($ships as $key => $ship) : ?>
+        <?php if ($ship->isFunctional()) : ?>
+            <option value="<?php echo $key; ?>"><?php echo $ship->getNameAndSpecs(); ?></option>
+        <?php endif; ?>
+    <?php endforeach; ?>
+</select>
+```
+
+On se  rend compte que  la `value` passée en `POST` pour les `<option>` des `<select>` sont une certaine variable `$key`. C'est quoi ça, déjà ?
+
+En fait, jusqu'à présent, `getShips()` nous retournait un tableau de ce genre :
+
+Le premier, en procédural :
+```
+[
+    "jedi_ship" => [
+        "name" => "Jedi Ship",
+        "strength" => 10,
+    ],
+    "master_ship" => [
+        "name" => "Master Ship",
+        "strength" => 30,
+    ],
+]
+```
+
+Le second, en objet :
+```
+[
+    "jedi_ship" => Object Ship,
+    "master_ship" => Object Ship
+]
+```
+
+Mais maintenant, notre fonction `getShip()` complètement orientée objet nous retourne :
+
+```
+[
+    Object Ship, // id = 1, name  = "Jedi Ship"...
+    Object Ship, // id = 2, name = "Master Ship"...
+]
+```
+
+Dans les deux premiers cas, on avait des clés créées à la main (`jedi_ship`, `master_ship`...). Dans le troisième cas, aucune clé créé à la main (c'est normal, plus de données en dur). Du coup, il va falloir utiliser une clé issue de notre objet et mettre à jour notre code.
+
+Quelle clé pourrait être idéale ? L'id bien sûr ! Maintenant que nous avons des donnéesde la base de données, on a de belles données bien formées avec des champs ID.
+
+### Ajouter l'attribut ID et changer `index.php`
+1. Notre Model doit ressembler à la table en base de données. Ajoutez donc un attribut `$id` et ses getters/setters.
+2. Comme on a un nouvel élément à ajouter dans notre objet (`->setId()`), modifiez le `ShipLoader` dans la boucle qui créée les objets, et ajoutez `->setId()` de sorte à ce que nos objets aient bien un ID.
+3. Retournons sur nos `<select>` dans `index.php`. Il va falloir opérer trois changements pour chacun : 
+   1. Changer le `name` du `<select>`, qui est `ship1_name` et `ship2_name`, par `ship1_id`, `ship2_id`. Ce sera bien plus parlant !
+   2. Changer le foreach : nous n'avons plus de tableau `key => value`, mais juste un tableau de `values` (les objets !). Changez-les comme ça :
+    ```php
+    <?php foreach ($ships as $ship) : ?>
+    // ...
+    <?php endforeach; ?>
+    ```
+    3. Enfin, changer l'`<option>`: pour sa `value`, nous n'avons plus accès à la `key`, mettez plutôt l'ID du ship (`$ship->getId()`).
+
+Vérifiez que tout fonctionne !
+
+### Changer les noms de variables dans `battle.php`
+Plusieurs choses sont à changer dans `battle.php` :
+1. Changez les noms de variables de façon adéquate (`$ship1Name`  et `$ship2Name` deviennent `$ship1Id` et `$ship2Id`). Attention à changer de partout dans le fichier là où c'est nécessaire !
+2. Changez aussi les `$_POST['ship1_name']` et `$_POST['ship2_name']` en `$_POST['ship1_id']` et `$_POST['ship2_id']` : eh oui, on avait changé le `name` des `<select>` dans `index.php`.
+
+### Récupérer un élément Ship
+Si tout a bien été changé (ça doit buguer et c'est normal), vous devriez avoir dans `battle.php`, à un endroit, quelque chose comme :
+
+```php
+$ship1 = $ships[$ship1Id];
+$ship2 = $ships[$ship2Id];
+```
+
+Ces deux lignes servaient à récupérer le `ship1` et le `ship2` dans le tableau `$ships`, par leur `key` dans le tableau. Maintenant, nous avons un tableau qui n'est plus associatif, nous n'avons plus de clé à donner au tableau : c'est un simple tableau d'objets.
+
+Il faut pourtant récupérer les données de `ship1` et de `ship2` ! Comment faire ? Avec une requête SQL qu'on connaît bien : `SELECT * FROM ship WHERE id = :id`. Et quelle est la classe idéale pour ça ? Notre `ShipLoader` !
+
+### Exercice :
+Ajoutez une nouvelle méthode `public findOneById(int $id)`. Cette méthode prend donc un `int` en paramètres, devra instancier PDO pour se connecter à la base de données (spoiler : prenez un morceau du code qui se trouve déjà dans la méthode `queryForShips()` de la même classe pour faire ça), préparer/executer la requête (rapellez-vous les pseudo-variables !) pour récupérer l'élément en base de données grâce à l'id passé en paramètres de la fonction (il n'y a que UN élement : `fetch` et pas `fetchAll` !), et retourner cette donnée.
+
+## Correction :
+Essayez de le faire vous-même avant de voir la correction !
+```php
+/**
+     * @param int $id
+     * @return array
+     */
+    public function findOneById(int $id)
+    {
+        $pdo = new PDO('mysql:host=localhost;dbname=hbspaceships', 'root', 'root');
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $statement = $pdo->prepare('SELECT * FROM ship WHERE id = :id');
+        $statement->execute(array('id' => $id));
+        $shipArray = $statement->fetch(PDO::FETCH_ASSOC);
+        var_dump($shipArray);
+        die;
+    }
+```
+
+Regardez dans la correction : pour le moment, on ne retourne rien, on var_dump et die. Comme toujours en fait ! Dès que possible, on teste !
+
+Comment appeler ce code ? On va maintenant modifier `battle.php` (c'est le fichier qui cherchait à récupérer nos `Ship`) pour appeler la méthode.
+
+Étape 1 : modifier le code qui cherche les Ship. Changez ce code :
+```php
+$ship1 = $ships[$ship1Id];
+$ship2 = $ships[$ship2Id];
+```
+
+Par ce code :
+
+```php
+$ship1 = $shipLoader->findOneById($ship1Id);
+$ship2 = $shipLoader->findOneById($ship2Id);
+```
+
+On utilise l'objet `ShipLoader` qui a déjà été déclaré en haut du fichier, et on utilise sa nouvelle méthode `findOneById`.
+
+Étape 2 : décalez ce morceau de code. Si vous regardez bien `battle.php`, on voit que pour le moment, on trouve `$ship1` et `$ship2` **après** le test `if` qui vérifient s'ils existent ! Pas très logique. Voici le test :
+
+```php
+if (!isset($ships[$ship1Id]) || !isset($ships[$ship2Id])) {
+    $_SESSION['error'] = 'bad_ships';
+    header('Location: index.php');
+    die;
+}
+```
+Le test dit : "s'il n'existe pas de `ship1Id` ni de `ship2Id` dans le tableau `ships`, alors on créée une erreur".
+
+Plusieurs soucis ici : un tel tableau (tableau associatif de Ship) n'existe plus, et en plus, on va récupérer nos Ship après cette condition. Donc l'erreur sera toujours créée pour le moment. Modifions `battle.php`, sur le passage où on a les 3 `if` et le nouveau code avec `findOneById()` de cette façon :
+
+```php
+// D'abord, on teste si les ID sont présents
+if (!$ship1Id || !$ship2Id) {
+    $_SESSION['error'] = 'missing_data';
+    header('Location: index.php');
+    die;
+}
+
+// Ensuite, puisque les ID sont présents, on cherche en BDD nos Ship
+$ship1 = $shipLoader->findOneById($ship1Id);
+$ship2 = $shipLoader->findOneById($ship2Id);
+
+// Ensuite, on teste si les deux Ship existent (ont été trouvé en BDD)
+// On ne teste plus le tableau, ouf !
+if (!isset($ship1) || !isset($ship2Id) ) {
+    $_SESSION['error'] = 'bad_ships';
+    header('Location: index.php');
+    die;
+}
+
+// Enfin, on teste la quantité de Ship
+if ($ship1Quantity <= 0 || $ship2Quantity <= 0) {
+    $_SESSION['error'] = 'bad_quantities';
+    header('Location: index.php');
+    die;
+}
+```
+
+Testez ! Si tout se passe bien, nous avons un Ship venu de la base de données qui est var_dumpé (le var_dump qui vient de `ShipLoader` dans `findOneById`).
+
+Comme tout fonctionne, terminons notre affaire de `findOneById`.
+
+### Transformer un array en un objet Ship
+Le problème pour le moment, c'est que `findOneById` nous retourne un array : c'est normal, la donnée vient de la base de données avec PDO, on a donc un tableau de données.
+
+Créons une méthode privée qui servira à convertir un array en un objet Ship :
+
+```php
+private function createShipFromData(array $shipData)
+{
+
+}
+```
+
+Dedans, on y met un code qu'on connaît déjà... Celui qui existe dans le foreach de `getShips` ! Ajoutez à notre nouvelle méthode `createShipFromData` le code suivant :
+
+```php
+private function createShipFromData(array $shipData)
+{
+    $ship = new Ship($shipData['name']);
+    $ship->setId($shipData['id']);
+    $ship->setWeaponPower($shipData['weapon_power']);
+    $ship->setSpatiodriveBooster($shipData['spationdrive_booster']);
+    $ship->setStrength($shipData['strength']);
+
+    return $ship;
+}
+```
+
+Et comme nous venons d'utiliser le code du foreach de `getShips`, nous pouvons modifier le foreach dans `getShips` comme cela :
+
+```php
+foreach ($shipsData as $shipData) {
+    $ships[] = $this->createShipFromData($shipData);
+}
+```
+
+Tout simplement !
+
+Terminons également notre `findOneById()` qui retourne maintenant la donnée transformée en `Ship` grâce à notre nouvelle méthode :
+
+```php
+public function findOneById($id)
+{
+    $pdo = new PDO('mysql:host=localhost;dbname=hbspaceships', 'root');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $statement = $pdo->prepare('SELECT * FROM ship WHERE id = :id');
+    $statement->execute(array('id' => $id));
+    $shipArray = $statement->fetch(PDO::FETCH_ASSOC);
+    return $this->createShipFromData($shipArray);
+}
+```
+
+Dans `battle.php`, nos variables `ship1` et `ship2` devraient donc maintenant être des objets `Ship`. Par contre, ajoutons une petite validation : et si un utilisateur malveillant changeait l'id par un id inexistant ? Retournons `null` si aucun `Ship` n'a été trouvé pour l'id donné :
+
+```php
+public function findOneById($id)
+{
+    $pdo = new PDO('mysql:host=localhost;dbname=hbspaceships', 'root');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $statement = $pdo->prepare('SELECT * FROM ship WHERE id = :id');
+    $statement->execute(array('id' => $id));
+    $shipArray = $statement->fetch(PDO::FETCH_ASSOC);
+
+    // Si aucun ship n'est trouvé en bdd...
+    if (!$shipArray) {
+        return null;
+    }
+
+    // Sinon, on retourne le ship transformé en objet Ship
+    return $this->createShipFromData($shipArray);
+}
+```
+
+Enfin (ouf!), modifions une dernière chose dans `battle.php` :  l'endroit où on teste, avec le `if`, si le Ship existe dans le tableau `$ship` :
+
+Remplacez ce code :
+```php
+if (!isset($ships[$ship1Id]) || !isset($ships[$ship2Id])) {
+    $_SESSION['error'] = 'bad_ships';
+    header('Location: index.php');
+    die;
+}
+```
+
+Par ce code :
+```php
+if (!$ship1 || !$ship2) {
+    $_SESSION['error'] = 'bad_ships';
+    header('Location: index.php');
+    die;
+}
+```
+
+### PHPDoc
+
+Pour finir, commentons correctement nos méthodes pour que notre éditeur de code comprenne correctement notre classe :
+
+```php
+class ShipLoader
+{
+    /**
+     * Retourne tous les ships sous forme d'un tableau d'objets Ship
+     * @return Ship[] Tableau d'objets Ship
+     */
+    public function getShips() { }
+
+    /**
+     * Retrouve en BDD la liste des ships sous forme d'un tableau de tableaux de données des ships
+     * @return array[] Tableau de tableaux de ships
+     */
+    private function queryForShips() {}
+
+    /**
+     * Retrouve un Ship par son id
+     * @param $id
+     * @return Ship
+     */
+    public function findOneById($id) {}
+
+    /**
+     * Créée un objet Ship depuis un tableau de données d'un ship
+     * @param array $shipData
+     * @return Ship
+     */
+    private function createShipFromData(array $shipData) {}
+}
+```
+
+Ouf ! Ça y est, un gros morceau de fait : utiliser une vraie base de données avec notre classe. Bravo !
+Pour être sûrs que tout fonctionne, voici notre classe `ShipLoader` au complet :
+
+```php
+<?php
+class ShipLoader
+{
+    /**
+     * Retourne tous les ships sous forme d'un tableau d'objets Ship
+     * @return Ship[] Tableau d'objets Ship
+     */
+    public function getShips()
+    {
+        // On prépare notre tableau de Ships
+        $ships = [];
+
+        // On appelle la méthode privée queryForShips() qui nous retourne les Ships de la BDD
+        // sous forme de tableau (passez $shipsData dans un var_dump() pour voir à quoi ça ressemble)
+        $shipsData = $this->queryForShips();
+
+        // On foreach le tableau de données qui vient de la BDD...
+        foreach ($shipsData as $shipData) {
+            $ships[] = $this->createShipFromData($shipData);
+        }
+
+        // Enfin, on retourne le tableau de Ships !
+        return $ships;
+    }
+
+    /**
+     * Retrouve en BDD la liste des ships sous forme d'un tableau de tableaux de données des ships
+     * @return array[] Tableau de tableaux de ships
+     */
+    private function queryForShips()
+    {
+
+        // On se connecte à PDO
+        $pdo = new PDO('mysql:host=localhost;dbname=hbbattleships', 'root', 'root');
+
+        // On configure PDO (optionnel)
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        // On prépare et exécute la requête
+        $statement = $pdo->prepare('SELECT * FROM ship');
+        $statement->execute();
+
+        // On récupère les données (fetchAll car il y a plusieurs éléments)
+        $shipsArray = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        // On retourne les données
+        return $shipsArray;
+    }
+
+    /**
+     * Retrouve un Ship par son id
+     * @param $id
+     * @return Ship
+     */
+    public function findOneById($id)
+    {
+        $pdo = new PDO('mysql:host=localhost;dbname=hbspaceships', 'root');
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $statement = $pdo->prepare('SELECT * FROM ship WHERE id = :id');
+        $statement->execute(array('id' => $id));
+        $shipArray = $statement->fetch(PDO::FETCH_ASSOC);
+
+        // Si aucun ship n'est trouvé en bdd...
+        if (!$shipArray) {
+            return null;
+        }
+
+        // Sinon, on retourne le ship transformé en objet Ship
+        return $this->createShipFromData($shipArray);
+    }
+
+    /**
+     * Créée un objet Ship depuis un tableau de données d'un ship
+     * @param array $shipData
+     * @return Ship
+     */
+    private function createShipFromData(array $shipData)
+    {
+        $ship = new Ship($shipData['name']);
+        $ship->setId($shipData['id']);
+        $ship->setWeaponPower($shipData['weapon_power']);
+        $ship->setSpatiodriveBooster($shipData['spationdrive_booster']);
+        $ship->setStrength($shipData['strength']);
+
+        return $ship;
+    }
+}
+```
+
 ## Chapitre 8 : Ne faire qu'une connexion à la BDD avec un attribut
+Vous l'avez sans doute remarqué : nous appelons deux fois la base de données dans notre classe `ShipLoader`. C'est un problème évident : si on a une modification à faire sur l'appel de la base de données, on doit dédoubler le code.
+
+Modifions un peu notre classe en ajoutant une méthode privée dédiée à PDO :
+
+```php
+/**
+ * @return PDO
+ */
+private function getPDO()
+{
+    $pdo = new PDO('mysql:host=localhost;dbname=hbspaceships', 'root');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    return $pdo;
+}
+```
+
+Vous savez déjà ce qu'il vous reste à faire : remplacez le code qui appelle PDO dans `findOneById()` et `queryForShips()` de sorte à utiliser le PDO de la classe, et ne plus avoir à l'appeler à chaque fois :
+
+```php
+public function findOneById($id)
+    {
+        $statement = $this->pdo->prepare('SELECT * FROM ship WHERE id = :id');
+        $statement->execute(array('id' => $id));
+        $shipArray = $statement->fetch(PDO::FETCH_ASSOC);
+        // ...
+```
+
+```php
+private function queryForShips()
+    {
+        $statement = $this->getPDO()->prepare('SELECT * FROM ship');
+        $statement->execute();
+        // ...
+```
+
+Retournez sur la page d'accueil. Nos données s'affichent toujours : rien n'a bougé, parfait !
+
+Il nous reste encore un petit problème : et si une page devait appeler plusieurs fois `findOneById()` ou `queryForShips()` ? Il se trouverait que `getPDO()` serait appelé plusieurs fois et... Plusieurs connexions à la base de données seraient ouvertes en parallèle. C'est un gâchis de ressources !
+
+### Prévenir la création de multiples instances de PDO
+Comment garantir qu'un seul objet PDO n'a été créé ? En créant un attribut ! D'une manière que nous n'avons pas encore vu. Jusque-là, nos attributs ne nous servaient qu'à donner des propriétés à un Model, comme Ship et `name`, `weaponPower`...
+
+Dans les classes services (c'est à dire, n'importe quelle classe dont le job principal est de *faire* quelque chose plutôt que de contenir de la data, comme les modèles), on utilise des attributs pour 2 raisons : 1/ contenir des options sur comment la classe doit se comporter, 2/ contenir des outils pour la classe... comme PDO.
+
+Créez un attribut privé `private $pdo` dans notre `ShipLoader`.
+
+Ensuite, modifions un peu `getPDO()` : testons d'abord si une instance de PDO existe dans notre nouvel attribut `$pdo`, si ça n'est pas le cas, alors on a le droit d'ouvrir une connexion !
+
+```php
+private function getPDO()
+{
+    if ($this->pdo === null) {
+        $this->pdo = new PDO('mysql:host=localhost;dbname=hbspaceships', 'root');
+        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    }
+    return $this->pdo;
+}
+```
+
+Au premier appel de `getPDO()`, `$this->pdo` sera nul, donc on créée un objet `PDO` et on le met dans `$this->pdo`. Sinon, on retourne le `$this->pdo` existant !
+
+C'est la première fois que nous voyons un attribut dans une de nos classes service. Et dans les classes services, les attributs ne servent pas à contenir des données, comme `name` pour `Ship`, mais à retenir des options et outils pour le bon fonctionnement du service !
+
+Actualisez la page : aucune différence ne devrait apparaître et tout devrait fonctionner.
+
 ## Chapitre 9 : Best Practice: Configuration centralisée
 ## Chapitre 10 : Best Practice: Connexion centralisée
 ## Chapitre 11 : Service Container

@@ -2,6 +2,7 @@
 
 class Ship {
 
+    private $id;
     private $name = "";
     private $weaponPower = 0;
     private $spatiodriveBooster = 0;
@@ -11,6 +12,14 @@ class Ship {
     public function __construct()
     {
         $this->isUnderRepair = mt_rand(1, 100) < 30;
+    }
+
+    public function setId($id)  {
+        $this->id = $id;
+    }
+
+    public function getId()  {
+        return $this->id;
     }
 
     public function setName(string $name)

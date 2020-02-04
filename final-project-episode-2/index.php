@@ -78,9 +78,9 @@ if (isset($_SESSION['error'])) {
             <input class="center-block form-control text-field" type="text" name="ship1_quantity" placeholder="Nombre de vaisseaux" />
             <select class="center-block form-control dropdown-toggle" name="ship1_name">
                 <option value="">Choisir un vaisseau</option>
-                <?php foreach ($ships as $key => $ship) : ?>
+                <?php foreach ($ships as $ship) : ?>
                     <?php if ($ship->isFunctional()) : ?>
-                        <option value="<?php echo $key; ?>"><?php echo $ship->getNameAndSpecs(); ?></option>
+                        <option value="<?php echo $ship->getId(); ?>"><?php echo $ship->getNameAndSpecs(); ?></option>
                     <?php endif; ?>
                 <?php endforeach; ?>
             </select>
@@ -90,9 +90,9 @@ if (isset($_SESSION['error'])) {
             <input class="center-block form-control text-field" type="text" name="ship2_quantity" placeholder="Nombre de vaisseaux" />
             <select class="center-block form-control dropdown-toggle" name="ship2_name">
                 <option value="">Choisir un vaisseau</option>
-                <?php foreach ($ships as $key => $ship) : ?>
+                <?php foreach ($ships as $ship) : ?>
                     <?php if ($ship->isFunctional()) : ?>
-                        <option value="<?php echo $key; ?>"><?php echo $ship->getNameAndSpecs(); ?></option>
+                        <option value="<?php echo $ship->getId(); ?>"><?php echo $ship->getNameAndSpecs(); ?></option>
                     <?php endif; ?>
                 <?php endforeach; ?>
             </select>
