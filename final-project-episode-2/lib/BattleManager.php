@@ -39,6 +39,9 @@ class BattleManager {
             $ship2Health = $ship2Health - ($ship1->getWeaponPower() * $ship1Quantity);
         }
 
+        $ship1->setStrength($ship1Health);
+        $ship2->setStrength($ship2Health);
+
         // Si les 2 groupes tombent à 0 au même tour :
         if ($ship1Health <= 0 && $ship2Health <= 0) {
             $winningShip = null;

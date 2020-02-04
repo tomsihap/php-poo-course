@@ -461,11 +461,191 @@ class BattleResult
 }
 ```
 
-## Chapitre 4 : Déclarations de type optionnelles et méthodes sémantiques
+## Chapitre 4 : Déclarations de type et méthodes sémantiques
+Si vous lancez un combat, et que vous actualisez (beaucoup, beaucoup, beaucoup) de fois, vous risquez de tomber sur un cas particulier. Le cas où deux vaisseaux se détruisent en même temps au même tour !
 
+### Déclaration de types
+Dans ce cas, pas de gagnant, et pas de `Ship` à donner au `BattleResult`.
 
-## Chapitre 5 : Les objets sont passés par référence
+Pourtant, si on jette un oeil à notre constructeur de `BattleResult` :
+
+```php
+public function __construct(bool $usedSpatiodriveBoosters, Ship $winningShip, Ship $losingShip) { /**/ }
+```
+
+Eh bien... On attend deux `Ship` ! On peut corriger ce problème en rajoutant un `?` devant le type : 
+```php
+public function __construct(bool $usedSpatiodriveBoosters, ?Ship $winningShip, ?Ship $losingShip) { /**/ }
+```
+
+Ce petit point d'interrogation veut dire : "je veux que tu créées un BattleResult avec ces trois variables à chaque fois, même si elles sont `null`". C'est tout !
+
+Pour coder proprement, modifions aussi la documentation : `getLosingShip()` et `getWinningShip()` retournent dorénavant soit un `Ship`, soit... `null` !
+
+```php
+// Dans la classe BattleResult :
+
+    /**
+     * @return Ship|null
+     */
+    public function getLosingShip()
+    {
+        return $this->losingShip;
+    }
+
+    /**
+     * @return Ship|null
+     */
+    public function getWinningShip()
+    {
+        return $this->winningShip;
+    }
+```
+
+### Méthodes sémantiques
+On peut rajouter des méthodes sémantiques, c'est à dire des méthodes simplement pratiques mais sans grande logique, qui sont là pour nous faciliter la vie. Par exemple, je sais que je ne peux pas utiliser mon objet `BattleResult` aussi facilement que ça: il faut que je pense aux cas où il n'y a pas de gagnants !
+
+Pour savoir cela, j'ai deux choix :
+1. Tester `if ( $battleResult->getWinningShip() ) { }` : si c'est vrai, c'est qu'il y a un vaisseau gagnant (et aussi un perdant du coup)
+2. Créer une méthode dédiée plus lisible, comme `if ( $battleResult->isThereAWinner() ) { }` (en français: est-ce qu'il y a un gagnant), qui retourne `true` si... il y a un gagnant !
+
+De plus, l'avantage du 2., est que la donnée retournée pourrait être un vrai `bool`, et pas un objet `Ship` ! (Bah oui, ma question c'est "est-ce qu'il y a un gagnant", pas "donne-moi le gagnant").
+
+On peut donc ajouter à `BattleResult` la méthode suivante :
+
+```php
+class BattleResult {
+    // ...
+
+    /**
+     * @return bool
+     */
+    public function isThereAWinner() : bool {
+        return $this->getWinningShip() !== null;
+    }
+}
+```
+
+Et voilà ! Encore une fois, on ne code plus pour résoudre des bugs, mais pour se faciliter la vie. N'hésitez pas à rajouter des méthodes qui vous facilitent le code, vous permettent de vous y retrouver, etc. !
+
+On peut donc enfin modifier correctement `battle.php` sur ses deux conditions `if` :
+
+```php
+// Fichier: battle.php
+<h3 class="text-center audiowide">
+    Gagnant :
+    <?php if ($outcome->isThereAWinner()) : ?>
+        <?php echo $outcome->getWinningShip()->getName(); ?>
+    <?php else : ?>
+        Personne
+    <?php endif; ?>
+</h3>
+```
+
+Et : 
+
+```php
+// Fichier : battle.php
+<p class="text-center">
+    <?php if (!$outcome->isThereAWinner()) : ?>
+        Les deux opposants se sont détruits lors de leur bataille épique.
+    <?php else : ?>
+        Le groupe de <?php echo $outcome->getWinningShip()->getName(); ?>
+        <?php if ($outcome->whereBoostersUsed()) : ?>
+            a utilisé son booster Spatiodrive pour détruire ladversaire !
+        <?php else : ?>
+            a été plus puissant et a détruit le groupe de <?php echo $outcome->getLosingShip()->getName() ?>s
+        <?php endif; ?>
+    <?php endif; ?>
+</p>
+```
+## Chapitre 5 : Les objets sont toujours passés par référence
+Ajoutons une nouvelle fonctionnalité : afficher la résistance finale de nos vaisseaux (le perdant a bien sûr zéro ou moins, mais le gagnant, il lui reste combien ?)
+
+C'est la classe `BattleResult` qui nous retourne les résultats. Et pour l'instant, elle ne nous retourne pas de variable contenant la santé de nos vaisseaux. On pourrait ajouter une variable "ship strength" ou quelque chose comme ça dans notre `BattleResult`, mais voyons quelque chose de plus intéressant.
+
+Modifions un peu notre gestion de bataille `BattleManager` dans la méthode `battle()`, dans la boucle de combat :
+
+```php
+while ($ship1Health > 0 && $ship2Health > 0) {
+    // ...
+    $ship1Health = $ship1Health - ($ship2->getWeaponPower() * $ship2Quantity);
+    $ship2Health = $ship2Health - ($ship1->getWeaponPower() * $ship1Quantity);
+}
+```
+
+On a bien nos variables `$ship1Health` et `$ship2Health`, elles peuvent nous servir ! C'est la valeur en cours de la résistance du vaisseau lors de la bataille.
+
+Le problème, c'est qu'elles ne sont stockées nulle-part.
+
+Plutôt que de retourner ces valeurs brutes comme suggéré au début du chapitre, nous allons faire bien mieux : `$ship1` et `$ship2` sont des objets... On peut utiliser leurs setters pour changer la valeur de leur `strength` !
+
+Modifiez le fichier `BattleManager` dans la méthode `battle()`, et ajoutez juste après la boucle du combat :
+
+```php
+while ($ship1Health > 0 && $ship2Health > 0) {
+    // ...
+    $ship1Health = $ship1Health - ($ship2->getWeaponPower() * $ship2Quantity);
+    $ship2Health = $ship2Health - ($ship1->getWeaponPower() * $ship1Quantity);
+}
+// On met à jour la valeur finale de la résistance des vaisseaux dans l'objet lui-même :
+$ship1->setStrength($ship1Health);
+$ship2->setStrength($ship2Health);
+```
+
+Pour tester, mettez un `var_dump` et un `die`, en débuguant `$ship1` et `$ship2` juste en dessous du code que vous venez de taper. Essayez un combat.
+
+Et voilà ! On voit que les deux vaisseaux ont une vie qui a changé. On peut récupérer cette donnée et l'afficher dans `battle.php` !
+
+Ce que l'on vient de faire est peut-être plutôt simple et fonctionnel, mais c'est une grande avancée. En effet, jusqu'à présent, `battle()` ne faisait que *lire* nos données. C'est à dire qu'on lisait la force, la résistance... Et on faisait un combat, en retournant le résultat de quelques calculs. Maintenant, dans notre méthode, on est capable de **lire** des données ainsi que d'**écrire** des données.
+
+C'est **complètement** différent de comme les fonctions et les arrays marchaient en PHP procédural par défaut. En effet, en passant des données d'un array dans une fonction, une copie des données de l'array auraient été modifiées dans la fonction, mais les données de l'array d'origine n'étaient jamais modifiées !
+
+Concrètement, si on résume ce qui vient de se passer : je passe des objets `Ship` dans la méthode `BattleManager::battle`. Ils sont traités par la fonction, et ensuite... Ils en ressortent modifiés.
+
+En PHP fonctionnel, ce comportement n'existe pas : si je passe une variable dans une fonction, elle est traitée par la fonction... Mais ensuite, sa valeur reste celle d'origine. La fonction ne modifie pas la variable elle-même directement.
+
+Les objets, eux, sont passés "par référence" : ça veut dire qu'il n'y a qu'un et un seul objet `$ship1` qui existe, et quand on le passe dans une fonction, nous passons précisément cet objet - pas une copie ! Quand on passe un array ou une string à une fonction par contre, on passe en fait une *copie* de la valeur d'origine. Ainsi, tous les changements qui pourraient être faits dans la fonction ne sont pas appliqués à la variable d'origine. Pour les objets... Si !
+
+**NOTE** : en réalité, on peut aussi passer des arrays et des strings par référence dans une fonction, en ajoutant le symbole `&` devant l'argument (par exemple: appeler `myFunction()` ainsi : `myFunction(&$var)`). Pour les objets on n'en a pas besoin évidemment, car ils sont toujours passés par référence.
+
+Le point à retenir de tout ça, qui peut être positif comme négatif, c'est que lorsqu'un changement est effectué sur un objet quelque part dans le code, ce changement est opéré de partout dans l'application pour cet objet !
+
+Pour illustrer tout cela, retirez vos `var_dump` de tests et ajoutez dans `battle.php` un endroit où afficher la résistance (`
+ship->getStrength()`) des deux vaisseaux lors de l'affichage du résultat.
+
+### Correction :
+On peut mettre tout ça dans un petit `dl/dd` par exemple ! Dans `battle.php`, au dessus des `<h3>`  :
+
+```php
+<h3>Résistance restante finale:</h3>
+<dl class="dl-horizontal">
+    <dt><?php echo $ship1->getName(); ?></dt>
+    <dd>Résistance : <?php echo $ship1->getStrength(); ?></dd>
+    <dt><?php echo $ship2->getName(); ?></dt>
+    <dd>Résistance : <?php echo $ship2->getStrength(); ?></dd>
+</dl>
+```
+
+Et voilà ! Normalement, dans les résultats, on voit la nouvelle valeur de la résistance apparaître.
+
 ## Chapitre 6 : Récupérer des objets depuis une base de données
+
+### Exercice (eh oui, il en faut !)
+
+Vous allez modifier le `ShipLoader` de sorte à récupérer des vaisseaux issus d'une base de données. Ce qui implique plusieurs étapes à suivre :
+
+1. Créez une base de données et une table de `Ship`.
+2. Les `Ship` auront les même champs que leur classe Model, avec bien sûr un `id` auto-incrémenté.
+3. Du coup, il faudra rajouter un attribut `$id` (avec ses setters/getters) dans la classe `Ship`, puisqu'ils ont dorénavant un ID !
+4. Créer une méthode dans `ShipLoader` nommée `queryForShips()`. Elle sera privée, car elle ne sert qu'au `ShipLoader`.
+5. Dans cette méthode, vous instancierez un `new PDO` qui se connecte à la base de données et récupère la liste des `Ship` de la base de données (rapellez-vous : prepare, execute...)
+6. Dans la méthode `getShips()`, appelez la méthode privée `queryforShips()` pour mettre les résultats dans une variable: par exemple, `$shipsDb = $this->queryForShips();` et var_dumpez les résultats.
+7. PDO nous retourne un array de tableaux avec les données de chaque `Ship` ! Mais il nous faut des... Objets `Ship`. Faites maintenant une boucle `foreach`, qui permette de prendre les données issues de la base de données, et de créer des objets.
+8. Dans la boucle, vous mettrez les objets ainsi créés dans un tableau `$ships`.
+9. Enfin, retournez simplement `$ships` !
+
+
 ## Chapitre 7 : Gérer l'ID d'un objet
 ## Chapitre 8 : Ne faire qu'une connexion à la BDD avec un attribut
 ## Chapitre 9 : Best Practice: Configuration centralisée

@@ -3,17 +3,26 @@
 class Ship
 {
 
+    /**
+     * ATTRIBUTS
+     */
     private $name = "";
     private $weaponPower = 0;
     private $spatiodriveBooster = 0;
     private $strength = 0;
     private $isUnderRepair = false;
 
+    /**
+     * CONSTRUCTEUR ET MÉTHODES MAGIQUES
+     */
     public function __construct()
     {
         $this->isUnderRepair = mt_rand(1, 100) < 30;
     }
 
+    /**
+     * SETTERS ET GETTERS
+     */
     public function setName(string $name)
     {
         $this->name = $name;
@@ -102,8 +111,26 @@ class Ship
         }
     }
 
+    /**
+     * AUTRES MÉTHODES
+     */
     public function doesThisShipHasMoreStrengthThanMe(Ship $ship)
     {
         return $ship->strength > $this->strength;
     }
+
+    public function attack(Ship $otherShip) {
+        var_dump("AVANT COMBAT");
+        var_dump($this, $otherShip);
+
+        $newOtherShipStrength = $otherShip->getStrength()  - $this->getWeaponPower();
+        $otherShip->setStrength( $newOtherShipStrength );
+
+        var_dump("APRÈS COMBAT");
+        var_dump($this, $otherShip);
+
+
+    }
+
+
 }

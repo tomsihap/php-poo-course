@@ -38,4 +38,11 @@ class BattleResult
     public function whereBoostersUsed() : bool {
         return $this->usedSpatiodriveBoosters;
     }
+
+    /**
+     * @return bool
+     */
+    public function isThereAWinner() : bool {
+        return $this->getWinningShip() !== null;
+    }
 }

@@ -55,19 +55,25 @@ $outcome = $battleManager->battle($ship1, $ship1Quantity, $ship2, $ship2Quantity
 </div>
 <div class="card">
     <div class="card-body text-center">
-        <h2></h2>
-        <p></p>
+
+        <h3>Résistance restante finale:</h3>
+        <dl class="dl-horizontal">
+            <dt><?php echo $ship1->getName(); ?></dt>
+            <dd>Résistance : <?php echo $ship1->getStrength(); ?></dd>
+            <dt><?php echo $ship2->getName(); ?></dt>
+            <dd>Résistance : <?php echo $ship2->getStrength(); ?></dd>
+        </dl>
 
         <h3 class="text-center audiowide">
             Gagnant :
-            <?php if ($outcome->getWinningShip()) : ?>
+            <?php if ($outcome->isThereAWinner()) : ?>
                 <?php echo $outcome->getWinningShip()->getName(); ?>
             <?php else : ?>
                 Personne
             <?php endif; ?>
         </h3>
         <p class="text-center">
-            <?php if ($outcome->getWinningShip() == null) : ?>
+            <?php if (!$outcome->isThereAWinner()) : ?>
                 Les deux opposants se sont détruits lors de leur bataille épique.
             <?php else : ?>
                 Le groupe de <?php echo $outcome->getWinningShip()->getName(); ?>
@@ -79,9 +85,10 @@ $outcome = $battleManager->battle($ship1, $ship1Quantity, $ship2, $ship2Quantity
             <?php endif; ?>
         </p>
     </div>
+</div>
 
-    <a href="index.php">
-        <p class="text-center"><i class="fa fa-undo"></i> Recommencer un combat</p>
-    </a>
+<a href="index.php">
+    <p class="text-center"><i class="fa fa-undo"></i> Recommencer un combat</p>
+</a>
 
-    <?php include('_partials/_footer.php'); ?>
+<?php include('_partials/_footer.php'); ?>
