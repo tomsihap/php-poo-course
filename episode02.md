@@ -1464,5 +1464,13 @@ public function getPDO()
     return $pdo;
 }
 ```
+
+Parfait ! `bootstrap.php` connaît déjà notre configuration dans une variable `$configuration`. On a juste à l'ajouter lorsque l'on instancie notre Container ! Modifiez un peu `index.php` et `battle.php` :
+
+```php
+$container = new Container($configuration);
+$pdo = $container->getPDO();
+```
+
 ## Chapitre 12 : Container: Forcer des objets uniques
 ## Chapitre 13 : Les containers à la rescouse
