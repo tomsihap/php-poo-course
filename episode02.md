@@ -1472,5 +1472,7 @@ $container = new Container($configuration);
 $pdo = $container->getPDO();
 ```
 
+Testez, tout devrait marcher.
+
 ## Chapitre 12 : Container: Forcer des objets uniques
 ## Chapitre 13 : Les containers à la rescouse
