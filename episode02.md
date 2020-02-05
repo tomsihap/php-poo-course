@@ -41,7 +41,15 @@
     - [Centraliser la configuration](#centraliser-la-configuration)
   - [Chapitre 12 : Container: Forcer des objets uniques](#chapitre-12--container-forcer-des-objets-uniques)
     - [Garantir l'existance de seulement UN objet PDO](#garantir-lexistance-de-seulement-un-objet-pdo)
+    - [Déplacer ShipLoader dans le Container](#d%c3%a9placer-shiploader-dans-le-container)
+    - [Ajouter BattleManager au container](#ajouter-battlemanager-au-container)
   - [Chapitre 13 : Les containers à la rescouse](#chapitre-13--les-containers-%c3%a0-la-rescouse)
+    - [Ajouter des arguments ? Facile](#ajouter-des-arguments--facile)
+    - [Les objets ne sont pas créés à moins d'être demandés](#les-objets-ne-sont-pas-cr%c3%a9%c3%a9s-%c3%a0-moins-d%c3%aatre-demand%c3%a9s)
+    - [Containers: un Design Pattern](#containers-un-design-pattern)
+    - [Model Classes versus Service Classes](#model-classes-versus-service-classes)
+    - [Réorganiser nos Models et Services](#r%c3%a9organiser-nos-models-et-services)
+    - [Best Practices vs le monde réel](#best-practices-vs-le-monde-r%c3%a9el)
 # TP : Programmation orientée objet en PHP (Épisode 2)
 
 ## Chapitre 1 : Classes de services
@@ -1513,5 +1521,143 @@ class Container
 }
 ```
 
+### Déplacer ShipLoader dans le Container
+Votre Container est propre ? Passons à la suite: nous ne voulons plus instancier ShipLoader dans `index.php` et `battle.php` manuellement (c'est à dire faire `new ShipLoader`). Insérons le dans le Container.
+
+Première étape : comme on a fait pour instantier PDO, créez un attribut pour ShipLoader :
+```php
+// /lib/Container.php
+// ...
+    private $shipLoader;
+```
+
+Seconde étape : tout simplement, créez un getter qui créée notre `new ShipLoader` et qui retourne l'attribut $shipLoader :
+```php
+// /lib/Container.php
+// ...
+    /**
+     * @return ShipLoader
+     */
+    public function getShipLoader()
+    {
+        $this->shipLoader = new ShipLoader($this->getPDO());
+        return $this->shipLoader;
+    }
+```
+
+Et voilà ! Bon, il manque une petite correction : comme pour PDO, on veut s'assurer de n'avoir qu'un seul ShipLoader de chargé. Modifiez un peu le code comme on a fait pour PDO :
+
+```php
+/**
+ * @return ShipLoader
+ */
+public function getShipLoader()
+{
+    if ($this->shipLoader === null) {
+        $this->shipLoader = new ShipLoader($this->getPDO());
+    }
+    return $this->shipLoader;
+}
+```
+
+Et voilà ! Mettez à jour le début de `index.php` et de `battle.php` comme ça :
+
+```php
+<?php
+require __DIR__ . '/bootstrap.php';
+$container = new Container($configuration);
+
+$pdo        = $container->getPDO();
+$shipLoader = $container->getShipLoader();
+```
+
+Qu'est-ce qu'il vient de se passer ici ? Après toutes ces modifications, on n'a plus qu'un seul objet à instancier : `Container`. Container, c'est un peu notre garage plein de boîtes à outils. De là, on n'a plus qu'à récupérer l'outil dont on a besoin (`getPDO()`, `getShipLoader()`...) sans se soucier des dépendances de chaque service.
+
+### Ajouter BattleManager au container
+Suprise: c'est exactement la même chose ! Le plus dur est déjà fait (faire un Container, écrire les services), heureusement on n'a plus qu'à faire comme on a fait pour ShipLoader :
+
+Ajoutez un attribut :
+```php
+private $battleManager;
+```
+
+Et ajouter la méthode pour le service :
+```php
+/**
+ * @return BattleManager
+ */
+public function getBattleManager()
+{
+    if ($this->battleManager === null) {
+        $this->battleManager = new BattleManager();
+    }
+    return $this->battleManager;
+}
+```
+
+Et voilà. Notre `BattleManager` est utilisé à un endroit, dans `battle.php`. Modifiez le fichier ainsi :
+
+Changez la ligne :
+```php
+$battleManager = new BattleManager();
+```
+
+Par :
+```php
+$battleManager = $container->getBattleManager();
+```
+
+Et c'est fini !
 
 ## Chapitre 13 : Les containers à la rescouse
+
+Félicitations ! Réussir ce projet n'est pas chose aisée, mais on a réussi une belle prouesse. Chaque objet service que nous avons, c'est à dire absolument tous nos services utiles à l'application comme `BattleManager`, `PDO` et `ShipLoader`, est créé directement par la classe `Container`. C'est son seul boulot.
+
+### Ajouter des arguments ? Facile
+Les avantages sont vraiment énormes, en voilà un. Imaginez que vous aviez à donner à `BattleManager` quelques arguments dans son constructeur (sur la typologie du combat par exemple, le mode de jeu...).  Avant, nous aurions eu à modifier de partout notre code. Maintenant, le seul code à modifier est dans le Container (`getBattleManager()`). Plus besoin d'aller dans `battle.php` ou ailleurs. On modifie dans le Container, et partout ailleurs, dès qu'on a besoin d'un `BattleManager`, on utilise juste `$container->getBattleManager()` et le Container va s'occuper de tout sans qu'on ait à savoir comment configurer le BattleManager.
+
+### Les objets ne sont pas créés à moins d'être demandés
+Jusqu'à présent, on devait importer en haut de nos fichiers, comme `index.php`, toutes les classes de notre projet. Si nous avions 50 modèles ou 50 services bien pratiques, nous aurions dû les importer et surtout les créer tous.
+
+Avec le Container, aucun des objets n'est créé avant que vous ne le demandiez spécifiquement (`getNomDuservice()`). Par exemple, `index.php` n'appellera jamais `$container->getBattleManager()`, donc le `BattleManager` n'est pas créé pour rien. On économie de précieuses ressources mémoire et processeur.
+
+### Containers: un Design Pattern
+L'idée du Container n'est pas nouvelle : c'est une stratégie bien connue nommée Injection de dépendances. Le container est une classe un peu spéciale et nous n'en avons besoin que d'un seul.
+
+Son seul rôle est de créer des objets Service. Et si vous le faites bien, chaque objets Service devra être créé dedans - il n'y aura plus besoin de les instancier nulle part ailleurs.
+
+### Model Classes versus Service Classes
+Les Models (comme Ship ou BattleResult) sont des classes qui ne servent qu'à contenir des données, et ne fait pas vraiment autre chose. Vous pouvez en créer des objets de partout dans votre code, il n'y a aucun prolbème, ils ne sont pas créés par le Container, on peut créer un Shiip ou un BattleResult n'importe où quand on en a besoin.
+
+Les Services (comme ShipLoader ou BattleManager) par contre, devraient être créés à un endroit centralisé pour être plus simples à maintenir. Le Container est une belle façon de le faire.
+
+### Réorganiser nos Models et Services
+Pour faire un peu de nettoyage dans notre application, refactorons quelques petites choses.
+
+Créez un dossier `/lib/Service` et un dossier `/lib/Model`. Déplacez `BattleManager`, `ShipLoader` et `Container` dans le dossier `/lib/Service` (oui, Container est un peu particulier mais c'est un service). Déplacez `BattleResult` et `Ship` dans `/lib/Model`.
+
+En ligne de commandes si vous préférez :
+```
+mv lib/BattleManager.php lib/Service
+mv lib/ShipLoader.php lib/Service
+mv lib/Container.php lib/Service
+
+mv lib/Ship.php lib/Model
+mv lib/BattleResult.php lib/Model
+```
+
+Ensuite, pour que notre projet fonctionne bien, mettons à jour notre `bootstrap.php` :
+```php
+require_once __DIR__.'/lib/Service/Container.php';
+require_once __DIR__.'/lib/Model/Ship.php';
+require_once __DIR__.'/lib/Service/BattleManager.php';
+require_once __DIR__.'/lib/Service/ShipLoader.php';
+require_once __DIR__.'/lib/Model/BattleResult.php';
+```
+
+### Best Practices vs le monde réel
+Plutôt que d'apprendre de nouveaux concepts de POO, nous sommes directement rentrés dans le dur et vu comment organiser notre code, entre models qui contiennent de la donnée et services, qui font le travail. Nous avons également vu que, quand on est dans une classe service, plutôt que de configurer en dur nos paramètres, on peut les sortir à l'extérieur du service en les important par son constructeur. On appelle ça l'injection de dépendance, et c'est un des concepts les plus complexes à comprendre en POO. Si vous n'avez pas encore l'impression d'avoir absolument compris l'intégralité du cours c'est donc tout à fait normal.
+
+Un petit avertissement sur la suite. Quand vous regarderez d'autres projets, l'idée de models qui ne font que contenir des données et rien d'autre et des services, qui ne font que des actions sans vraiment avoir de données, n'est pas toujours suivie. Vous verrez parfois des mixes des deux, une classe Ship capable de `battle()` ou de `save()` et inversement.
+
+Nous avons juste vu les "best practices" en POO, attendez vous à  voir des projets plus "exotiques". Et vous mêmes, vous apprendrez à vous adapter aux différents cas et ne pas suivre les règles absolument ; mais essayez de garder en tête la séparation entre models et services.

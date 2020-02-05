@@ -1,10 +1,12 @@
 <?php
 require __DIR__ . '/bootstrap.php';
-$container = new Container();
-$pdo = $container->getPDO();
+$container = new Container($configuration);
 
-$shipLoader = new ShipLoader($pdo);
+$pdo        = $container->getPDO();
+$shipLoader = $container->getShipLoader();
+
 $ships = $shipLoader->getShips();
+
 $errorMessage = null;
 if (isset($_SESSION['error'])) {
     switch ($_SESSION['error']) {

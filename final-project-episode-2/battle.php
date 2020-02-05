@@ -1,6 +1,10 @@
 <?php
 require __DIR__ . '/bootstrap.php';
-$shipLoader = new ShipLoader();
+$container = new Container($configuration);
+
+$pdo        = $container->getPDO();
+$shipLoader = $container->getShipLoader();
+
 $ships = $shipLoader->getShips();
 
 // On vérifie que les données du formulaire existent :
@@ -31,7 +35,7 @@ if ($ship1Quantity <= 0 || $ship2Quantity <= 0) {
     die;
 }
 
-$battleManager = new BattleManager();
+$battleManager = $container->getBattleManager();
 $outcome = $battleManager->battle($ship1, $ship1Quantity, $ship2, $ship2Quantity);
 ?>
 

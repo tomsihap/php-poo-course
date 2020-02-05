@@ -8,8 +8,9 @@ class Ship {
     private $strength = 0;
     private $isUnderRepair = false;
 
-    public function __construct()
+    public function __construct(string $name)
     {
+        $this->name = $name;
         $this->isUnderRepair = mt_rand(1, 100) < 30;
     }
 
