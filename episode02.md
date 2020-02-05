@@ -722,7 +722,7 @@ class ShipLoader
 
         // 3. On foreach le tableau de données qui vient de la BDD...
         // Remplacez évidemment $A et $B ;)
-        foreach ($A as $B {
+        foreach ($A as $B) {
 
             // 4. .. pour créer des objets, et non plus des arrays!
             $ship = new Ship("??????");
