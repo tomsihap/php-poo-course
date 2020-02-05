@@ -43,7 +43,7 @@
     - [Garantir l'existance de seulement UN objet PDO](#garantir-lexistance-de-seulement-un-objet-pdo)
     - [Déplacer ShipLoader dans le Container](#d%c3%a9placer-shiploader-dans-le-container)
     - [Ajouter BattleManager au container](#ajouter-battlemanager-au-container)
-  - [Chapitre 13 : Les containers à la rescouse](#chapitre-13--les-containers-%c3%a0-la-rescouse)
+  - [Chapitre 13 : Les containers à la rescousse](#chapitre-13--les-containers-%c3%a0-la-rescousse)
     - [Ajouter des arguments ? Facile](#ajouter-des-arguments--facile)
     - [Les objets ne sont pas créés à moins d'être demandés](#les-objets-ne-sont-pas-cr%c3%a9%c3%a9s-%c3%a0-moins-d%c3%aatre-demand%c3%a9s)
     - [Containers: un Design Pattern](#containers-un-design-pattern)
@@ -1609,7 +1609,7 @@ $battleManager = $container->getBattleManager();
 
 Et c'est fini !
 
-## Chapitre 13 : Les containers à la rescouse
+## Chapitre 13 : Les containers à la rescousse
 
 Félicitations ! Réussir ce projet n'est pas chose aisée, mais on a réussi une belle prouesse. Chaque objet service que nous avons, c'est à dire absolument tous nos services utiles à l'application comme `BattleManager`, `PDO` et `ShipLoader`, est créé directement par la classe `Container`. C'est son seul boulot.
 
