@@ -31,8 +31,14 @@
   - [Chapitre 8 : Ne faire qu'une connexion à la BDD avec un attribut](#chapitre-8--ne-faire-quune-connexion-%c3%a0-la-bdd-avec-un-attribut)
     - [Prévenir la création de multiples instances de PDO](#pr%c3%a9venir-la-cr%c3%a9ation-de-multiples-instances-de-pdo)
   - [Chapitre 9 : Best Practice: Configuration centralisée](#chapitre-9--best-practice-configuration-centralis%c3%a9e)
+    - [Passer aux objets la configuration dont ils ont besoin](#passer-aux-objets-la-configuration-dont-ils-ont-besoin)
+    - [La règle d'or](#la-r%c3%a8gle-dor)
   - [Chapitre 10 : Best Practice: Connexion centralisée](#chapitre-10--best-practice-connexion-centralis%c3%a9e)
+  - [Ajouter un argument $pdo au constructeur](#ajouter-un-argument-pdo-au-constructeur)
+    - [Quelques rappels](#quelques-rappels)
   - [Chapitre 11 : Service Container](#chapitre-11--service-container)
+    - [Créer un Service Container](#cr%c3%a9er-un-service-container)
+    - [Centraliser la configuration](#centraliser-la-configuration)
   - [Chapitre 12 : Container: Forcer des objets uniques](#chapitre-12--container-forcer-des-objets-uniques)
   - [Chapitre 13 : Les containers à la rescouse](#chapitre-13--les-containers-%c3%a0-la-rescouse)
 # TP : Programmation orientée objet en PHP (Épisode 2)
@@ -1233,7 +1239,230 @@ C'est la première fois que nous voyons un attribut dans une de nos classes serv
 Actualisez la page : aucune différence ne devrait apparaître et tout devrait fonctionner.
 
 ## Chapitre 9 : Best Practice: Configuration centralisée
+Prochain problème : dans notre ShipLoader, notre connexion à la base de données et écrite en dur. C'est un souci pour deux raisons :
+   1. Si ça fonctionne sur mon ordinateur, ça ne fonctionnera probablement pas en production (pas les même identifiants)
+   2. Et si on avait besoin d'une connexion en BDD dans une autre classe ? On devrait réécrire la connexion, bof bof.
+
+Voici l'objectif : déplacer la connexion de la base de données dans un endroit plus centralisé, de sorte à ce qu'on puisse la réutiliser. Petite note : la façon dont on  va procéder va être un point fondamental de la manière dont on va coder, proprement, nos projets en orienté objet !
+
+### Passer aux objets la configuration dont ils ont besoin
+En fait, si une classe service, comme ShipLoader, a besoin d'informations pour fonctionner, comme un mot de passe de BDD, nous devrions les lui donner immédiatement à la création de l'objet.
+
+La façon la plus courante de faire est d'utiliser le constructeur : en effet, comme ça, je serai obligé de lui fournir les informations pour créer l'objet `$shipLoader` :
+
+```php
+class ShipLoader
+{
+    private $dbDsn;
+    private $dbUser;
+    private $dbPass;
+    public function __construct($dbDsn, $dbUser, $dbPass)
+    {
+        $this->dbDsn = $dbDsn;
+        $this->dbUser = $dbUser;
+        $this->dbPass = $dbPass;
+    }
+}
+```
+
+Et voilà ! Modifions aussi la méthode `getPDO()` :
+
+```php
+private function getPDO()
+    {
+        if ($this->pdo === null) {
+            $this->pdo = new PDO($this->dbDsn, $this->dbUser, $this->dbPass);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        }
+        return $this->pdo;
+    }
+```
+
+Qu'est-ce qu'il se passe ici ? Maintenant, `PDO` n'est plus instancié  avec des strings écrites en dur mais les valeurs de `dbDsn`, `dbUser`, `dbPass` appartenant à la classe `ShipLoader`.
+
+Mais maintenant, quand on créée un `ShipLoader` (comme dans `index.php`), on a besoin de passer des arguments au constructeur de `new ShipLoader(....)` (entre les parenthèses donc).
+
+Plutôt que d'écrire en dur dans l'instantiation de `ShipLoader`, nous allons créer un array de configuration contenant toutes les données utiles. Ajoutez dans `bootstrap.php :
+
+```php
+$configuration = [
+    'db_dsn'  => 'mysql:host=localhost;dbname=hbbattleships',
+    'db_user' => 'root',
+    'db_pass' => null,
+];
+```
+
+Puis, dans `index.php` et `battle.php`, remplacez ça :
+```php
+$shipLoader = new ShipLoader();
+```
+
+Par :
+
+```php
+$shipLoader = new ShipLoader(
+    $configuration['db_dsn'],
+    $configuration['db_user'],
+    $configuration['db_pass']
+);
+```
+
+Et voilà, tout fonctionne comme avant. En plus, on a une configuration centralisée dans `bootstrap.php` !
+
+### La règle d'or
+La grosse règle importante est la suivante : ne mettez jamais de configuration à l'intérieur d'un service. En effet, ça nous permet d'utiliser le service avec *n'importe quelle configuration*. Imaginez que vous avez plusieurs bases de données à tester, ou que vous vouliez utiliser le service dans plusieurs projets : votre code est maintenant bien plus flexible.
+
 ## Chapitre 10 : Best Practice: Connexion centralisée
+Encore un autre problème : notre objet PDO est maintenant configurable directement dans `bootstrap.php`, mais on appelle encore notre PDO directement dans le service `ShipLoader`. C'est un problème si on ajoute un autre service, par exemple pour un modèle `Battle` et un service `BattleLoader`: on devra dupliquer le code. Donc si on a 50 tables, on aura 50 connexion séparées, outch !
+
+Il ne nous faut qu'une seule connexion qui sera la seule utilisée par toutes les classes.
+
+Voici l'objectif : déplacer l'appel à `new PDO()` en dehors du `ShipLoader`, de  sorte à ce qu'il soit créé en un endroit un peu plus central et accessible à tout le monde (enfin, toutes les classes). Comment ? En utilisant la même stratégie que pour la configuration. Si on veut utiliser quelque chose en dehors d'une classe service, dans ce même service, ajoutez un argument dans `__construct()` et passez le dedans.
+
+## Ajouter un argument $pdo au constructeur
+C'est parti ! Au lieu de passer 3 éléments de configuration de base de données au constructeur de `ShipLoader`, nous allons carrément passer un objet `PDO` en paramètres : `$pdo`.
+
+
+Let's do it! Instead of passing in the 3 database options, we need to pass in the whole PDO object. Replace the 3 arguments with just one: $pdo. Give it a type-hint to be great programmers. Next, remove the three configuration properties. And back in __construct(), we already have a $pdo property, so set that with $this->pdo = $pdo.
+
+Retirez les 3 attributs privés `$dbDsn`, `$dbUser`, `$dbPass` de la classe `ShipLoader`, ainsi que de son constructeur, et ajoutez uniquement un attribut `$pdo` à la place. On type `$pdo` de type `PDO`.
+
+```php
+class ShipLoader
+{
+    private $pdo;
+    public function __construct(PDO $pdo)
+    {
+        $this->pdo = $pdo;
+    }
+```
+
+Ensuite, on a dit qu'on allait déplacer notre création de `PDO` dans un autre endroit. Du coup, notre `getPDO()` va se simplifier :
+
+```php
+private function getPDO()
+{
+    return $this->pdo;
+}
+```
+
+C'est maintenant simplement un getter pour l'attribut $pdo de notre classe !
+
+Et du coup, où va se trouver notre appel à PDO ? Alors, réfléchissons un peu. Dans `index.php` et dans `battle.php`, j'ai ce nouveau code du chapitre précédent :
+
+```php
+$shipLoader = new ShipLoader(
+    $configuration['db_dsn'],
+    $configuration['db_user'],
+    $configuration['db_pass']
+);
+```
+
+Sauf que dorénavant, le constructeur de `ShipLoader` ne prend plus 3 paramètres, mais un seul, une instance de PDO.
+
+On va donc instancier `new PDO` juste avant `new ShipLoader` de sorte à pouvoir le passer dans son constructeur. Changez donc ce code en :
+
+```php
+// On créée une instance de PDO
+$pdo = new PDO(
+    $configuration['db_dsn'],
+    $configuration['db_user'],
+    $configuration['db_pass']
+);
+
+// On configure PDO
+$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+// On créée notre ShipLoader, en passant l'instance de PDO
+$shipLoader = new ShipLoader($pdo);
+```
+
+Et... Voilà ! On a déplacé la configuration ET la connexion à l'extérieur du service. Maintenant, n'importe  quel service peut utiliser la connexion sans n'avoir rien à coder en dur dedans.
+
+### Quelques rappels
+Quelques rappels sur ces nouveaux concepts. N'incluez jamais de configuration (ex: config de PDO) ni de création d'objets services (ex: création de l'objet PDO) à l'intérieur d'un service. Cela rendrait le service dépendant de votre configuration/projet actuel, et ne pourrait pas être réutilisable facilement, que ce soit par vous même sur une autre machine (dev/prod), ou par d'autres, ou sur d'autres projets.
+
+Quand on créée un service à l'intérieur d'une classe, on ne peut pas l'utiliser ou le contrôler facilement.
+
+À la place, crééez tous vos objets services à un seul endroit et passez les d'un service à l'autre grâce au constructeur. Ce concept n'est pas toujours facile à tenir ! Vous tomberez souvent sur des projets ne respectant pas à la lettre ces préceptes - et ce n'est pas grave ! Vous apprenez ici les bonnes et meilleures pratiques pour être un développeur orienté objet, et vous essayerez de diriger  vos projets dans cette directioN.
+
+Le point négatif de tout cela, c'est que maintenant, créer des objets service devient un peu plus compliqué (on passe de `new ShipLoader()` à une instanciation de PDO puis une injection de PDO dans le contrôleur...). On verra comment corriger ce problème dans les prochaines étapes avec une autre stratégie encore plus cool !
+
 ## Chapitre 11 : Service Container
+Bonne nouvelle : on a gagné en flexibilité ! Mauvaise nouvelle : on doit créer des objets service à la main et c'est chiant à faire. Nous devons centraliser tout cela.
+
+### Créer un Service Container
+Pour cela, nous allons créer une classe un peu spéciale dont son seul travail est de créer nos objets service. Cette classe est appelée un Service Container, parce qu'elle est un... container. De services. Et c'est tout.
+
+Dans le dossier `lib`, créez un nouveau fichier nommé `Container.php` :
+
+```php
+class Container {
+    /**
+     * @return PDO
+     */
+    public function getPDO()
+    {
+        $configuration = array(
+            'db_dsn'  => 'mysql:host=localhost;dbname=hbbattleships',
+            'db_user' => 'root',
+            'db_pass' => null,
+        );
+        $pdo = new PDO(
+            $configuration['db_dsn'],
+            $configuration['db_user'],
+            $configuration['db_pass']
+        );
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        return $pdo;
+    }
+}
+```
+
+Ouf, maintenant que tout ce code est ici, plus besoin de le réécrire à la main à chaque fois comme on a dans `index.php` et `battle.php`. Justement, modifions un peu `index.php` et `battle.php` :
+
+Tout en haut du fichier, ajoutez ces lignes et supprimez la ligne de `$pdo` déjà existante:
+
+```php
+$container = new Container();
+$pdo = $container->getPDO();
+```
+
+N'oublions pas de rajouter dans la liste de nos imports, dans `bootstrap.php`, notre nouveau Container :
+
+```php
+// ...
+require_once __DIR__.'/lib/Container.php';
+```
+
+Testez ! Tout devrait encore marcher.
+
+### Centraliser la configuration
+Bon, c'est très pratique et on a retiré de la duplication de code, mais on vient de faire un petit pas en arrière. On a encore de la configuration dans une classe, notre Container.
+
+Pour fixer ça, on va ajouter un constructeur à notre classe `Container` et un attribut configuration :
+
+```php
+    private $configuration;
+    public function __construct(array $configuration)
+    {
+        $this->configuration = $configuration;
+    }
+```
+
+Modifions aussi, du coup, l'instanciation de PDO dans `getPDO` :
+
+```php
+public function getPDO()
+{
+    $pdo = new PDO(
+        $this->configuration['db_dsn'],
+        $this->configuration['db_user'],
+        $this->configuration['db_pass']
+    );
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    return $pdo;
+}
+```
 ## Chapitre 12 : Container: Forcer des objets uniques
 ## Chapitre 13 : Les containers à la rescouse

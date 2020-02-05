@@ -1,7 +1,9 @@
 <?php
 require __DIR__ . '/bootstrap.php';
+$container = new Container();
+$pdo = $container->getPDO();
 
-$shipLoader = new ShipLoader();
+$shipLoader = new ShipLoader($pdo);
 $ships = $shipLoader->getShips();
 $errorMessage = null;
 if (isset($_SESSION['error'])) {
