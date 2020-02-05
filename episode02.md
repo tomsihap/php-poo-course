@@ -40,6 +40,7 @@
     - [Créer un Service Container](#cr%c3%a9er-un-service-container)
     - [Centraliser la configuration](#centraliser-la-configuration)
   - [Chapitre 12 : Container: Forcer des objets uniques](#chapitre-12--container-forcer-des-objets-uniques)
+    - [Garantir l'existance de seulement UN objet PDO](#garantir-lexistance-de-seulement-un-objet-pdo)
   - [Chapitre 13 : Les containers à la rescouse](#chapitre-13--les-containers-%c3%a0-la-rescouse)
 # TP : Programmation orientée objet en PHP (Épisode 2)
 
@@ -972,7 +973,7 @@ private function createShipFromData(array $shipData)
     $ship = new Ship($shipData['name']);
     $ship->setId($shipData['id']);
     $ship->setWeaponPower($shipData['weapon_power']);
-    $ship->setSpatiodriveBooster($shipData['spationdrive_booster']);
+    $ship->setSpatiodriveBooster($shipData['spatiodrive_booster']);
     $ship->setStrength($shipData['strength']);
 
     return $ship;
@@ -1164,7 +1165,7 @@ class ShipLoader
         $ship = new Ship($shipData['name']);
         $ship->setId($shipData['id']);
         $ship->setWeaponPower($shipData['weapon_power']);
-        $ship->setSpatiodriveBooster($shipData['spationdrive_booster']);
+        $ship->setSpatiodriveBooster($shipData['spatiodrive_booster']);
         $ship->setStrength($shipData['strength']);
 
         return $ship;
@@ -1475,4 +1476,42 @@ $pdo = $container->getPDO();
 Testez, tout devrait marcher.
 
 ## Chapitre 12 : Container: Forcer des objets uniques
+On arrive au bout ! Notre but maintenant, est de rendre le Container de services responsable de la création de chaque objet service. Un peu comme on a déjà pour PDO ! C'est bien le Container qui s'occupe de le créer. Maintenant, faisons de même pour qu'il s'occupe de la création de `ShipLoader` et `BattleManager`.
+
+### Garantir l'existance de seulement UN objet PDO
+Voilà le problème : si nous appelons `$container->getPDO()` deux fois dans la même requête, au final, on se retrouvera avec plusieurs objets PDO, et donc, plusieurs connexions d'ouvertes à la bases de données. On peut bien sûr éviter ça en étant soigneux dans notre code. On peut aussi faire mieux : garantir qu'il n'existe qu'UN seul objet PDO, grâce au Container.
+
+On a fait la même chose un peu plus tôt dans `ShipLoader`: créez une propriété privée `$pdo`, puis dans `getPDO()`, testez s'il existe déjà quelque chose dans `$this->pdo`. Si ça n'est pas le cas, tant mieux, créez la connexion. Sinon, récupérez la connexion existante dans `$this->pdo` !
+
+Voici notre Container au complet :
+
+```php
+class Container
+{
+    private $configuration;
+    private $pdo;
+
+    public function __construct(array $configuration)
+    {
+        $this->configuration = $configuration;
+    }
+    /**
+     * @return PDO
+     */
+    public function getPDO()
+    {
+        if ($this->pdo === null) {
+            $this->pdo = new PDO(
+                $this->configuration['db_dsn'],
+                $this->configuration['db_user'],
+                $this->configuration['db_pass']
+            );
+            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        }
+        return $this->pdo;
+    }
+}
+```
+
+
 ## Chapitre 13 : Les containers à la rescouse
