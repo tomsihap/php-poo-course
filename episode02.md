@@ -674,7 +674,7 @@ Vous allez modifier le `ShipLoader` de sorte à récupérer des vaisseaux issus 
 
 1. Créez une base de données et une table de `Ship`. Vous trouverez la requête SQL complète juste après. Les `Ship` en base de données auront les même champs que leur classe Model, avec bien sûr un `id` auto-incrémenté.
 2. Créer une méthode dans `ShipLoader` nommée `queryForShips()`. Elle sera privée, car elle ne sert qu'au `ShipLoader`.
-3. Dans cette méthode, vous instancierez un `new PDO` qui se connecte à la base de données et récupère la liste des `Ship` de la base de données (rapellez-vous : prepare, execute...) dans un array `$shipsArray`.
+3. Dans cette méthode, vous instancierez un `new PDO` qui se connecte à la base de données et récupère la liste des `Ship` de la base de données (rapellez-vous : prepare, execute...) dans un array `$ships`.
 4. Dans la méthode `getShips()`, appelez la méthode privée `queryforShips()` pour mettre les résultats dans une variable: par exemple, `$shipsDb = $this->queryForShips();` et var_dumpez les résultats.
 5. PDO nous retourne un array de tableaux avec les données de chaque `Ship` ! Mais il nous faut des... Objets `Ship`. Faites maintenant une boucle `foreach`, qui permette de prendre les données issues de la base de données, et de créer des objets.
 6. Dans la boucle, vous mettrez les objets ainsi créés dans un tableau `$ships`.
